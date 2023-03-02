@@ -8,8 +8,8 @@ fi
 
 ./temstapro  -f tests/data/long_sequence.fasta -e './tests/outputs/' \
     -d './ProtTrans/' --mean-output ./tests/outputs/013_mean.tmp \
-    --per-res-smooth-output ./tests/outputs/013_per_res_smooth.tmp \
-    -c --window-size-embeddings 41 --window-size-predictions 81 -p './tests/outputs/'
+    --per-segment-output ./tests/outputs/013_per_res_smooth.tmp \
+    -c --segment-size 41 --window-size-predictions 81 -p './tests/outputs/'
 
 rm ./tests/outputs/013_mean.tmp
 rm ./tests/outputs/013_per_res_smooth.tmp

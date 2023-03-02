@@ -1,5 +1,10 @@
-Usage: temstapro [options]
-
-temstapro: error: no such option: --per-res-smooth-output
-rm: cannot remove './tests/outputs/013_mean.tmp': No such file or directory
-rm: cannot remove './tests/outputs/013_per_res_smooth.tmp': No such file or directory
+2000-01-01: beginning to load the model 
+2000-01-01: finished loading the model
+2000-01-01: beginning to generate embeddings
+Portion 1. Generated embeddings: 1/1
+0:00:00.0001: time to generate embeddings
+0:00:00.0001: time to generate embeddings per protein
+1: per-residue embeddings generated
+1: mean embeddings generated
+2000-01-01: beginning to make inferences
+2000-01-01: finished making inferences
