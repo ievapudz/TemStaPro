@@ -1,3 +1,12 @@
+2000-01-01: beginning to load the model 
+2000-01-01: finished loading the model
+2000-01-01: beginning to generate embeddings
+Portion 1.
+1/1: sequences with generated mean embeddings
+1/1: sequences with generated per-residue embeddings
+0:00:00.0001: time to generate embeddings
+0:00:00.0001: time to generate embeddings per protein
 2000-01-01: beginning to make inferences
 2000-01-01: finished making inferences
-protein_id	position	t40_binary	t40_raw	t45_binary	t45_raw	t50_binary	t50_raw	t55_binary	t55_raw	t60_binary	t60_raw	t65_binary	t65_raw	left_hand_label	right_hand_label	clash
+protein_id	position	sequence	length	t40_binary	t40_raw	t45_binary	t45_raw	t50_binary	t50_raw	t55_binary	t55_raw	t60_binary	t60_raw	t65_binary	t65_raw	left_hand_label	right_hand_label	clash
+artificial_sequence	-	UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO	158	1	1.000e+00	1	1.000e+00	1	6.000e-01	0	4.000e-01	0	8.472e-09	0	2.567e-18	[50-55)	[50-55)	-

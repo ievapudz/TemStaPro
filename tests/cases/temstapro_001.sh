@@ -1,5 +1,9 @@
 #!/bin/sh
 
-# Testing passing an NPZ file as an argument
+# Testing case with replaced symbols of the sequence
 
-./temstapro -n ./tests/data/long_sequence.npz -d './ProtTrans/'
+./temstapro  -f tests/data/replaced_symbol_sequence.fasta -e './tests/outputs/' \
+    -d './ProtTrans/' --per-res-output ./tests/outputs/001_mean.tmp 
+
+rm ./tests/outputs/001_mean.tmp
+

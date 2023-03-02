@@ -38,14 +38,6 @@ parser = OptionParser()
 parser.add_option("--input-fasta", "-f", dest="fasta",
     default=None, help="path to the input FASTA file.")
 
-parser.add_option("--input-npz", "-n", dest="npz",
-    default=None, help="path to the input NPZ file with proteins "+\
-    "and their embeddings.")
-
-parser.add_option("--keyword", "-k", dest="keyword",
-    default="test", help="setting the keyword of the data set in "+\
-    "the input NPZ file. Default: 'test'.")
-
 parser.add_option("--embeddings-dir", "-e", dest="emb_dir",
     default=None, help="path to the directory to which embeddings "+\
     "files will be saved (cache).")
@@ -101,7 +93,7 @@ parser.add_option("--portion-size", dest="portion_size",
 CLASSIFIERS_DIR = f"{options.tsp_dir}/models"
 
 try:
-    assert (options.fasta != None or options.npz != None), f"{sys.argv[0]}: a FASTA or an NPZ file is required."
+    assert (options.fasta != None), f"{sys.argv[0]}: a FASTA file is required."
 except AssertionError as message:
     print(message, file=sys.stderr)
     exit()
@@ -122,202 +114,184 @@ if(options.per_segment_out):
 per_res_dataset = None
 per_res_sequences = None
 
-if(not options.npz):
-    embeddings = None
+embeddings = None
 
-    # Standardization of the FASTA file
-    (sequences, orig_headers, orig_seqs) = prottrans_models.process_FASTA(options.fasta)
+# Standardization of the FASTA file
+(sequences, orig_headers, orig_seqs) = prottrans_models.process_FASTA(options.fasta)
 
-    # Check which sequences do not have embeddings generated
-    if(options.emb_dir and os.path.exists(options.emb_dir)):
-        seqs_wo_emb = data_process.get_sequences_without_embeddings(sequences, 
-            options.emb_dir)
+# Check which sequences do not have embeddings generated
+if(options.emb_dir and os.path.exists(options.emb_dir)):
+    seqs_wo_emb = data_process.get_sequences_without_embeddings(sequences, 
+        options.emb_dir)
+else:
+    seqs_wo_emb = sequences
+
+if(len(seqs_wo_emb)):
+    # Loading the ProtTrans model
+    print("%s: beginning to load the model " % datetime.now(), file=sys.stderr)
+
+    if(os.path.isfile(f"{options.pt_dir}/pytorch_model.bin")):
+        model = prottrans_models.get_pretrained_model(options.pt_dir)
     else:
-        seqs_wo_emb = sequences
+        if(not os.path.exists(f"{options.pt_dir}/")):
+            os.system(f"mkdir -p {options.pt_dir}/")
+        model = prottrans_models.get_pretrained_model(PT_MODEL_PATH)
+        prottrans_models.save_pretrained_model(model, options.pt_dir)
 
-    if(len(seqs_wo_emb)):
-        # Loading the ProtTrans model
-        print("%s: beginning to load the model " % datetime.now(), file=sys.stderr)
+    tokenizer = prottrans_models.get_tokenizer(PT_MODEL_PATH)
+    print("%s: finished loading the model" % datetime.now(), file=sys.stderr)
 
-        if(os.path.isfile(f"{options.pt_dir}/pytorch_model.bin")):
-            model = prottrans_models.get_pretrained_model(options.pt_dir)
-        else:
-            if(not os.path.exists(f"{options.pt_dir}/")):
-                os.system(f"mkdir -p {options.pt_dir}/")
-            model = prottrans_models.get_pretrained_model(PT_MODEL_PATH)
-            prottrans_models.save_pretrained_model(model, options.pt_dir)
+    # Dividing sequences into portions
+    options.portion_size = int(options.portion_size)
 
-        tokenizer = prottrans_models.get_tokenizer(PT_MODEL_PATH)
-        print("%s: finished loading the model" % datetime.now(), file=sys.stderr)
+    gen_emb_start = datetime.now()
+    print(f"{datetime.now()}: beginning to generate embeddings", file=sys.stderr)
 
-        # Dividing sequences into portions
-        options.portion_size = int(options.portion_size)
+    if(options.portion_size != 0):
+        for i in range(0, len(list(seqs_wo_emb.keys())), options.portion_size):
+            portion_keys = list(seqs_wo_emb.keys())[i:i+options.portion_size]
 
-        gen_emb_start = datetime.now()
-        print(f"{datetime.now()}: beginning to generate embeddings", file=sys.stderr)
+            seqs_wo_emb_portion = {}
+            for key in portion_keys:
+                seqs_wo_emb_portion[key] = seqs_wo_emb[key]
 
-        if(options.portion_size != 0):
-            for i in range(0, len(list(seqs_wo_emb.keys())), options.portion_size):
-                portion_keys = list(seqs_wo_emb.keys())[i:i+options.portion_size]
+            # Generating embeddings
+            embeddings = prottrans_models.get_embeddings(model, tokenizer, 
+                    seqs_wo_emb_portion, True, True)
+           
+            gen_emb_end = datetime.now()
 
-                seqs_wo_emb_portion = {}
-                for key in portion_keys:
-                    seqs_wo_emb_portion[key] = seqs_wo_emb[key]
+            # If cache given, save embeddings
+            if(options.emb_dir and os.path.exists(options.emb_dir)):
+                prottrans_models.save_embeddings(seqs_wo_emb_portion, embeddings, 
+                    options.emb_dir)
+            elif(options.emb_dir and not os.path.exists(options.emb_dir)):
+                print("The given directory (option -e) does not exist. Embeddings PT files "+\
+                    "will not be saved.", file=sys.stderr)        
 
-                # Generating embeddings
-                if(i == 0):
-                    embeddings = prottrans_models.get_embeddings(model, tokenizer, 
-                        seqs_wo_emb_portion, True, True)
-                else:
-                    generated_representations = prottrans_models.get_embeddings(model, tokenizer,
-                        seqs_wo_emb_portion, True, True)
-                    embeddings["mean_representations"].update(
-                        generated_representations["mean_representations"])
-                    embeddings["per_res_representations"].update(
-                        generated_representations["per_res_representations"])
- 
-                print(f"Portion {int(i/options.portion_size)+1}. Generated embeddings: "+\
-                    f"{len(embeddings['mean_representations'].keys())}/{len(list(seqs_wo_emb.keys()))}",
+            try:
+                # Printing embeddings generation statistics
+                print(f"Portion {int(i/options.portion_size)+1}.", file=sys.stderr)
+                print(f"{len(embeddings['mean_representations'].keys())}/{len(list(seqs_wo_emb_portion.keys()))}: "+\
+                    "sequences with generated mean embeddings",
                     file=sys.stderr)
+                print(f"{len(embeddings['per_res_representations'].keys())}/{len(list(seqs_wo_emb_portion.keys()))}: "+\
+                    "sequences with generated per-residue embeddings",
+                    file=sys.stderr)
+                print("%s: time to generate embeddings" % (gen_emb_end - gen_emb_start),
+                    file=sys.stderr)
+                print("%s: time to generate embeddings per protein" % ((gen_emb_end - \
+                    gen_emb_start)/len(embeddings["mean_representations"])),
+                    file=sys.stderr)
+            except ZeroDivisionError:
+                print(f"{sys.argv[0]}: no embeddings were generated.", file=sys.stderr)
+                sys.exit(1)
+            
+            # Collecting the required type of embeddings
+            dataset = data_process.collect_mean_embeddings(seqs_wo_emb_portion, 
+                embeddings=embeddings, emb_dir=options.emb_dir, 
+                input_size=INPUT_SIZE)
 
-        # If cache given, save embeddings
-        if(options.emb_dir and os.path.exists(options.emb_dir)):
-            prottrans_models.save_embeddings(seqs_wo_emb, embeddings, 
-                options.emb_dir)
-        elif(options.emb_dir and not os.path.exists(options.emb_dir)):
-            print("The given directory (option -e) does not exist. Embeddings PT files "+\
-                "will not be saved.", file=sys.stderr)        
-        gen_emb_end = datetime.now()
+            if(options.per_res_out):
+                per_res_dataset = data_process.collect_per_res_embeddings(seqs_wo_emb_portion, 
+                    orig_seqs, embeddings=embeddings, emb_dir=options.emb_dir, 
+                    input_size=INPUT_SIZE)
+                per_res_sequences = per_res_dataset["z_test"]
+            elif(options.per_segment_out):
+                per_res_dataset = data_process.collect_per_res_embeddings(seqs_wo_emb_portion, 
+                    orig_seqs, embeddings=embeddings,
+                    emb_dir=options.emb_dir, input_size=INPUT_SIZE, smoothen=True, 
+                    window_size=options.segment_size)
+                per_res_sequences = per_res_dataset["z_test"]
 
-        try:
-            # Printing embeddings generation statistics
-            print("%s: time to generate embeddings" % (gen_emb_end - gen_emb_start),
+            test_loader, per_res_test_loader = model_flow.prepare_data_loaders([
+                dataset, per_res_dataset], 'test')
+
+            print("%s: beginning to make inferences" % datetime.now(), 
                 file=sys.stderr)
-            print("%s: time to generate embeddings per protein" % ((gen_emb_end - \
-                gen_emb_start)/len(embeddings["mean_representations"])),
-                file=sys.stderr)
-            print("%d: per-residue embeddings generated" % \
-                len(embeddings["per_res_representations"]),
-                file=sys.stderr)
-            print("%d: mean embeddings generated" % \
-                len(embeddings["mean_representations"]), 
-                file=sys.stderr)
-        except ZeroDivisionError:
-            print(f"{sys.argv[0]}: no embeddings were generated.", file=sys.stderr)
-            sys.exit(1)
 
-    # Collecting the required type of embeddings
-    dataset = data_process.collect_mean_embeddings(sequences, 
-        embeddings=embeddings, emb_dir=options.emb_dir, 
-        input_size=INPUT_SIZE)
+            averaged_inferences, binary_inferences, labels, clashes = model_flow.prepare_inference_dictionaries(
+                [seqs_wo_emb_portion, per_res_sequences])
 
-    if(options.per_res_out):
-        per_res_dataset = data_process.collect_per_res_embeddings(sequences, 
-            orig_seqs, embeddings=embeddings, emb_dir=options.emb_dir, 
-            input_size=INPUT_SIZE)
-        per_res_sequences = per_res_dataset["z_test"]
-    elif(options.per_segment_out):
-        per_res_dataset = data_process.collect_per_res_embeddings(sequences, 
-            orig_seqs, embeddings=embeddings,
-            emb_dir=options.emb_dir, input_size=INPUT_SIZE, smoothen=True, 
-            window_size=options.segment_size)
-        per_res_sequences = per_res_dataset["z_test"]
+            # Making inferences
+            for j, loader in enumerate([test_loader, per_res_test_loader]):
+                if(loader is None): break
+                for threshold in THRESHOLDS:
+                    threshold_inferences = {}
+                    for seed in SEEDS:
+                        classifier = MLP_C2H2(INPUT_SIZE, HIDDEN_LAYER_SIZES[0], 
+                            HIDDEN_LAYER_SIZES[1])
+                        model_path = "%s/%s_%s_%s-%s_s%s.pt" % (
+                            CLASSIFIERS_DIR, EMB_TYPE, DATASET, 
+                            CLASSIFIER_TYPE, threshold, seed)
+                        classifier.load_state_dict(torch.load(model_path))
+                        classifier.eval()
 
-else:
-    # Loading embeddings from a given NPZ file
-    sequences = []
+                        classifier.to(DEVICE)
 
-    dataset = data_process.load_tensor_from_NPZ(options.npz, 
-        ['x_'+options.keyword, 'y_'+options.keyword])
+                        threshold_inferences[seed] = model_flow.inference_epoch(classifier, 
+                            loader, 
+                            identifiers=list(averaged_inferences[j].keys()), device=DEVICE)
+                    # Taking average of the predictions 
+                    for seq in threshold_inferences["41"].keys():
+                        mean_prediction = 0
+                        for seed in SEEDS:
+                             mean_prediction += threshold_inferences[seed][seq]
+                        mean_prediction /= len(SEEDS)
+                        averaged_inferences[j][seq].append(mean_prediction)
+                        binary_inferences[j][seq].append(round(mean_prediction))
 
-    with numpy.load(options.npz, allow_pickle=True) as data_loaded:
-        sequences.append(data_loaded['z_'+options.keyword])
+            print("%s: finished making inferences" % datetime.now(), file=sys.stderr)
+            
+            # Processing results
+            for j, loader in enumerate([test_loader, per_res_test_loader]):
+                if(loader is None): break
+                for seq in averaged_inferences[j].keys():
+                    labels[j][seq].append(results.get_temperature_label(
+                        averaged_inferences[j][seq], 
+                        TEMPERATURE_RANGES, left_hand=True))
+                    labels[j][seq].append(results.get_temperature_label(
+                        averaged_inferences[j][seq],
+                        TEMPERATURE_RANGES, left_hand=False))
+                    clashes[j][seq].append(results.detect_clash(averaged_inferences[j][seq],
+                        left_hand=True))
 
-    orig_headers = {seq[0].split('|')[1]: seq[0] for seq in sequences}
-    orig_seqs = None
+            # Processing printing of mean predictions
+            if(options.mean_out):
+                f_mean = open(options.mean_out, "w") if i == 0 else open(options.mean_out, "a")
+            else:
+                f_mean = sys.stdout
 
-test_loader, per_res_test_loader = model_flow.prepare_data_loaders([
-    dataset, per_res_dataset], options.keyword)
+            if(i == 0): results.print_inferences_header(f_mean, options.fasta)
 
-print("%s: beginning to make inferences" % datetime.now(), 
-    file=sys.stderr)
+            results.print_inferences(averaged_inferences[0], binary_inferences[0], 
+                orig_headers, labels[0], clashes[0], f_mean, orig_seqs, 
+                options.fasta, "mean")
 
-averaged_inferences, binary_inferences, labels, clashes = model_flow.prepare_inference_dictionaries(
-    [sequences, per_res_sequences], is_npz=options.npz)
+            # Printing per-residue inferences
+            if(options.per_res_out):
+                f_per_res = open(options.per_res_out, "w") if i == 0 else open(options.per_res_out, "a")
+                if(i == 0): results.print_inferences_header(f_per_res, options.fasta)
 
-# Making inferences
-for i, loader in enumerate([test_loader, per_res_test_loader]):
-    if(loader is None): break
-    for threshold in THRESHOLDS:
-        threshold_inferences = {}
-        for seed in SEEDS:
-            model = MLP_C2H2(INPUT_SIZE, HIDDEN_LAYER_SIZES[0], 
-                HIDDEN_LAYER_SIZES[1])
-            model_path = "%s/%s_%s_%s-%s_s%s.pt" % (
-                CLASSIFIERS_DIR, EMB_TYPE, DATASET, 
-                CLASSIFIER_TYPE, threshold, seed)
-            model.load_state_dict(torch.load(model_path))
-            model.eval()
+                results.print_inferences(averaged_inferences[1], binary_inferences[1], 
+                    orig_headers, labels[1],
+                    clashes[1], f_per_res, per_res_sequences, options.fasta, "per-res")
+            elif(options.per_segment_out):
+                f_per_res = open(options.per_segment_out, "w") if i == 0 else open(options.per_segment_out, "a")
+                if(i == 0): results.print_inferences_header(f_per_res, options.fasta)
 
-            model.to(DEVICE)
+                results.print_inferences(averaged_inferences[1], binary_inferences[1], 
+                    orig_headers, labels[1],
+                    clashes[1], f_per_res, per_res_sequences, options.fasta, "per-segment")
 
-            threshold_inferences[seed] = model_flow.inference_epoch(model, 
-                loader, 
-                identifiers=list(averaged_inferences[i].keys()), device=DEVICE)
-        # Taking average of the predictions 
-        for seq in threshold_inferences["41"].keys():
-            mean_prediction = 0
-            for seed in SEEDS:
-                 mean_prediction += threshold_inferences[seed][seq]
-            mean_prediction /= len(SEEDS)
-            averaged_inferences[i][seq].append(mean_prediction)
-            binary_inferences[i][seq].append(round(mean_prediction))
+            if(options.per_res_out and options.plot_dir):
+                results.plot_per_res_inferences(averaged_inferences[1], THRESHOLDS, 
+                options.plot_dir, window_size=options.window_size_predictions)
 
-print("%s: finished making inferences" % datetime.now(), file=sys.stderr)
-
-# Processing results
-for i, loader in enumerate([test_loader, per_res_test_loader]):
-    if(loader is None): break
-    for seq in averaged_inferences[i].keys():
-        labels[i][seq].append(results.get_temperature_label(
-            averaged_inferences[i][seq], 
-            TEMPERATURE_RANGES, left_hand=True))
-        labels[i][seq].append(results.get_temperature_label(
-            averaged_inferences[i][seq],
-            TEMPERATURE_RANGES, left_hand=False))
-        clashes[i][seq].append(results.detect_clash(averaged_inferences[i][seq],
-            left_hand=True))
-
-# Processing printing of mean predictions
-if(options.mean_out):
-    f_mean = open(options.mean_out, "w")
-else:
-    f_mean = sys.stdout
-
-results.print_inferences(averaged_inferences[0], binary_inferences[0], 
-    orig_headers, labels[0], clashes[0], f_mean, orig_seqs, 
-    options.fasta, "mean")
-
-# Printing per-residue inferences
-if(options.per_res_out):
-    f_per_res = open(options.per_res_out, "w")
-    results.print_inferences(averaged_inferences[1], binary_inferences[1], 
-        orig_headers, labels[1],
-        clashes[1], f_per_res, per_res_sequences, options.fasta, "per-res")
-elif(options.per_segment_out):
-    f_per_res = open(options.per_segment_out, "w")
-    results.print_inferences(averaged_inferences[1], binary_inferences[1], 
-        orig_headers, labels[1],
-        clashes[1], f_per_res, per_res_sequences, options.fasta, "per-res-smooth")
-
-if(options.per_res_out and options.plot_dir):
-    results.plot_per_res_inferences(averaged_inferences[1], THRESHOLDS, 
-    options.plot_dir, window_size=options.window_size_predictions)
-
-if(options.per_segment_out and options.plot_dir):
-    results.plot_per_res_inferences(averaged_inferences[1], THRESHOLDS, 
-        options.plot_dir, 
-        smoothen=options.curve_smoothening, 
-        window_size=options.window_size_predictions, 
-        x_label=f"window (k={options.segment_size}) index", 
-        title="Combined residue predictions")
+            if(options.per_segment_out and options.plot_dir):
+                results.plot_per_res_inferences(averaged_inferences[1], THRESHOLDS, 
+                    options.plot_dir, 
+                    smoothen=options.curve_smoothening, 
+                    window_size=options.window_size_predictions, 
+                    x_label=f"window (k={options.segment_size}) index", 
+                title="Combined residue predictions")

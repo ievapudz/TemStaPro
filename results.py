@@ -67,6 +67,26 @@ def detect_clash(predictions, left_hand=True):
                 round(float(predictions[j])) and j == len(predictions)-2):
                 return "no"
 
+def print_inferences_header(file_handle, input_fasta=False):
+    """
+    Print inferences table header.
+
+    file_handle - FILE to which the results will be printed
+    input_fasta - BOOLEAN that determines whether the input was FASTA (True)
+        or NPZ (False)
+    """
+
+    if(input_fasta):
+        print("protein_id\tposition\tsequence\tlength\t"+\
+            "t40_binary\tt40_raw\tt45_binary\tt45_raw\tt50_binary\tt50_raw\t"+\
+            "t55_binary\tt55_raw\tt60_binary\tt60_raw\tt65_binary\tt65_raw\t"+\
+            "left_hand_label\tright_hand_label\tclash", file=file_handle)
+    else:
+        print("protein_id\tposition\t"+\
+            "t40_binary\tt40_raw\tt45_binary\tt45_raw\tt50_binary\tt50_raw\t"+\
+            "t55_binary\tt55_raw\tt60_binary\tt60_raw\tt65_binary\tt65_raw\t"+\
+            "left_hand_label\tright_hand_label\tclash", file=file_handle)
+
 def print_inferences(averaged_inferences, binary_inferences, original_headers,
     labels, clashes, file_handle, sequences=None, input_fasta=False, 
     run_mode='mean'):
@@ -83,17 +103,9 @@ def print_inferences(averaged_inferences, binary_inferences, original_headers,
     file_handle - FILE to which the results will be printed
     input_fasta - BOOLEAN that determines whether the input was FASTA (True)
         or NPZ (False)
+    run_mode - STRING that determines which run mode is executed:
+        'mean', 'per-res', 'per-segment'
     """
-    if(input_fasta):
-        print("protein_id\tposition\tsequence\tlength\t"+\
-            "t40_binary\tt40_raw\tt45_binary\tt45_raw\tt50_binary\tt50_raw\t"+\
-            "t55_binary\tt55_raw\tt60_binary\tt60_raw\tt65_binary\tt65_raw\t"+\
-            "left_hand_label\tright_hand_label\tclash", file=file_handle)
-    else:
-        print("protein_id\tposition\t"+\
-            "t40_binary\tt40_raw\tt45_binary\tt45_raw\tt50_binary\tt50_raw\t"+\
-            "t55_binary\tt55_raw\tt60_binary\tt60_raw\tt65_binary\tt65_raw\t"+\
-            "left_hand_label\tright_hand_label\tclash", file=file_handle)
 
     if(sequences is None): return
 
@@ -107,7 +119,7 @@ def print_inferences(averaged_inferences, binary_inferences, original_headers,
         if(run_mode == "mean"):
             out_header = original_headers[proc_header]
             position = '-'
-        elif(run_mode == "per-res-smooth"):
+        elif(run_mode == "per-segment"):
             out_header = original_headers["_".join(proc_header.split("_")[0:-1])]
             pos_range = proc_header.split("_")[-1].split("-")
             range_length = int(pos_range[1])-int(pos_range[0])
