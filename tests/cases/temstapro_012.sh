@@ -14,7 +14,7 @@ if test -f "tests/outputs/c425721d82cb786570760210076eaa21403b210aa6566882a41c4a
     rm tests/outputs/c425721d82cb786570760210076eaa21403b210aa6566882a41c4ac70df2defd.pt
 fi
 
-./thermoclass2 -f tests/data/multiple_sequences.fasta -e './tests/outputs/' \
+./temstapro -f tests/data/multiple_sequences.fasta -e './tests/outputs/' \
     -d './ProtTrans/' --mean-output tests/outputs/012_mean.tmp \
     --per-res-output tests/outputs/012_per_res.tmp
 

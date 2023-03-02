@@ -1,7 +1,7 @@
 2000-01-01: beginning to load the model 
 2000-01-01: finished loading the model
 2000-01-01: beginning to generate embeddings
-Portion 0. Generated embeddings: 3/3
+Portion 1. Generated embeddings: 3/3
 0:00:00.0001: time to generate embeddings
 0:00:00.0001: time to generate embeddings per protein
 3: per-residue embeddings generated

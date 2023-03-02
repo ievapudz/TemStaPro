@@ -1,7 +1,7 @@
 2000-01-01: beginning to load the model 
 2000-01-01: finished loading the model
 2000-01-01: beginning to generate embeddings
-./thermoclass2: runtime error generating embedding for MGYP003385177403__Cas9-C3M5__1_6e-51 FL=0 (L=87810). Try lowering batch size. If single sequence processing does not work, you need more vRAM to process your protein.
-Portion 0. Generated embeddings: 0/1
+./temstapro: runtime error generating embedding for MGYP003385177403__Cas9-C3M5__1_6e-51 FL=0 (L=87810). Try lowering batch size. If single sequence processing does not work, you need more vRAM to process your protein.
+Portion 1. Generated embeddings: 0/1
 0:00:00.0001: time to generate embeddings
-./thermoclass2: no embeddings were generated.
+./temstapro: no embeddings were generated.

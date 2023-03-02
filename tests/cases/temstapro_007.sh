@@ -14,7 +14,7 @@ if test -f "tests/outputs/c425721d82cb786570760210076eaa21403b210aa6566882a41c4a
     rm tests/outputs/c425721d82cb786570760210076eaa21403b210aa6566882a41c4ac70df2defd.pt
 fi
 
-./thermoclass2 -f ./tests/data/multiple_sequences.fasta -e tests/outputs/ -d './ProtTrans/'
+./temstapro -f ./tests/data/multiple_sequences.fasta -e tests/outputs/ -d './ProtTrans/'
 
-./thermoclass2 -f ./tests/data/multiple_sequences.fasta -e tests/outputs/ -d './ProtTrans/'
+./temstapro -f ./tests/data/multiple_sequences.fasta -e tests/outputs/ -d './ProtTrans/'
 
