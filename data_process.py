@@ -7,20 +7,23 @@ import torch
 from hashlib import sha256
 from os import path
 
-def get_sequences_without_embeddings(sequences, emb_dir):
+def get_sequences_without_embeddings(sequences, emb_dir, per_res=False):
     """
     Collecting sequences that do not have generated embeddings.
 
     sequences - DICT of all sequences in the input (keys are sequence ids, 
         values are protein sequences
     emb_dir - STRING that defines the directory where embeddings are saved
+    per_res - BOOL that determines whether per-residue embeddings are needed
 
     returns DICT with sequences that lack embeddings
     """
     seqs_wo_emb = {}
     for seq_id in list(sequences.keys()):
-        seq_code = sha256(sequences[seq_id].encode('utf-8')).hexdigest() 
-        if(not path.exists("%s/%s.pt" % (emb_dir, seq_code))):
+        seq_code = sha256(sequences[seq_id].encode('utf-8')).hexdigest()
+        if(not path.exists(f"{emb_dir}/mean_{seq_code}.pt")):
+            seqs_wo_emb[seq_id] = sequences[seq_id]
+        if(per_res and not path.exists(f"{emb_dir}/per_res_{seq_code}.pt")):
             seqs_wo_emb[seq_id] = sequences[seq_id]
     return seqs_wo_emb
 
@@ -45,7 +48,7 @@ def collect_mean_embeddings(sequences, embeddings, emb_dir, input_size=1024):
     for i, seq_id in enumerate(sequences):
         if(emb_dir and path.exists(emb_dir)):
             # Loading sequences from cache
-            embedding = torch.load("%s/%s.pt" % (emb_dir,
+            embedding = torch.load("%s/mean_%s.pt" % (emb_dir,
                 sha256(sequences[seq_id].encode('utf-8')).hexdigest()))["mean_representations"]
         else:
             # Taking freshly-generated embeddings
@@ -80,15 +83,16 @@ def collect_per_res_embeddings(sequences, original_sequences, embeddings, emb_di
     dataset['z_test'] = {}
 
     for i, seq_id in enumerate(sequences):
+
         iterations_for_seq = len(sequences[seq_id])
 
         if(emb_dir and path.exists(emb_dir)):
-            embedding = torch.load("%s/%s.pt" % (emb_dir,
+            embedding = torch.load("%s/per_res_%s.pt" % (emb_dir,
                 sha256(sequences[seq_id].encode('utf-8')).hexdigest()))["per_res_representations"]
         else:
             # Taking freshly-generated embeddings
             embedding = torch.from_numpy(embeddings["per_res_representations"][seq_id])
- 
+
         for j in range(iterations_for_seq):
             if(i == 0 and j == 0):
                 dataset["x_test"] = torch.reshape(embedding[j], (1, input_size))
@@ -110,7 +114,7 @@ def collect_per_res_embeddings(sequences, original_sequences, embeddings, emb_di
                 dataset['z_test']['%s_%d-%d' % (seq_id, j, j+WINDOW_SIZE)] = ''.join(original_sequences[seq_id][j:j+WINDOW_SIZE])
                 dataset["y_test"] = torch.cat((dataset["y_test"], torch.tensor([999]).int()), 0)
                 j += 1
-            
+    
     if(smoothen): dataset["x_test"] = smoothened_embeddings
     return dataset
 

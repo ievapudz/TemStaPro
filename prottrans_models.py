@@ -144,18 +144,22 @@ def get_embeddings(model, tokenizer, seqs, per_residue, per_protein,
 
     return results
 
-def save_embeddings(sequences, embeddings, embeddings_directory):
+def save_embeddings(sequences, embeddings, embeddings_directory, embedding_type="mean"):
     """
     Saving embeddings to PT files for later use.
+
     sequences - DICT with sequence ids as keys and sequences themselves 
-    as values.
-    embeddings - DICT with generated embeddings for each sequence.
+    as values
+    embeddings - DICT with generated embeddings for each sequence
+    embeddings_directory - STRING that determines the path to directory for embeddings
+    embedding_type - STRING that determines, which type of embeddings to save
     """
+    embedding_type_key = embedding_type+"_representations"
     for seq_id in list(sequences.keys()):
         seq_data = {"label": seq_id}
-        if(seq_id in embeddings["mean_representations"].keys()):
+        if(seq_id in embeddings[embedding_type_key].keys()):
             seq_data["sequence"] = sequences[seq_id]
-            for key in ["mean_representations", "per_res_representations"]:
-                seq_data[key] = torch.from_numpy(embeddings[key][seq_id])
+            seq_data[embedding_type_key] = torch.from_numpy(
+                embeddings[embedding_type_key][seq_id])
         seq_code = sha256(sequences[seq_id].encode('utf-8')).hexdigest()
-        torch.save(seq_data, "%s/%s.pt" % (embeddings_directory, seq_code))
+        torch.save(seq_data, f"{embeddings_directory}/{embedding_type}_{seq_code}.pt")
