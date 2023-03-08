@@ -109,6 +109,7 @@ except AssertionError as message:
 # Loading the ProtTrans model
 print("%s: beginning to load the model " % datetime.now(), file=sys.stderr)
 
+"""
 if(os.path.isfile(f"{options.pt_dir}/pytorch_model.bin")):
     model = prottrans_models.get_pretrained_model(options.pt_dir)
 else:
@@ -118,6 +119,10 @@ else:
     prottrans_models.save_pretrained_model(model, options.pt_dir)
 
 tokenizer = prottrans_models.get_tokenizer(PT_MODEL_PATH)
+"""
+pt_model, tokenizer = prottrans_models.load_model_and_tokenizer(options.pt_dir, 
+    PT_MODEL_PATH)
+
 print("%s: finished loading the model" % datetime.now(), file=sys.stderr)
 
 # Dividing sequences into portions
@@ -149,7 +154,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
         print(f"{datetime.now()}: beginning to generate embeddings", file=sys.stderr)
 
         # Generating embeddings
-        embeddings = prottrans_models.get_embeddings(model, tokenizer, 
+        embeddings = prottrans_models.get_embeddings(pt_model, tokenizer, 
             seqs_wo_emb_portion, 
             per_residue=per_res_mode, 
             per_protein=True)

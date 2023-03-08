@@ -8,3 +8,4 @@ Portion 1.
 0:00:00.0001: time to generate embeddings per protein
 2000-01-01: beginning to make inferences
 2000-01-01: finished making inferences
+rm: cannot remove 'tests/outputs/mean_b6f8b4d2f6602ee040278b1d64ab7cf588baa33d74a126030e252fd91ac00601.pt': No such file or directory

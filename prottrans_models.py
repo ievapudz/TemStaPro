@@ -53,6 +53,26 @@ def get_tokenizer(model_path):
 	
     return tokenizer
 
+def load_model_and_tokenizer(pt_dir, pt_server_path):
+    """
+    Load ProtTrans model and tokenizer.
+    
+    pt_dir - STRING to determine the path to the directory with ProtTrans 
+        "pytorch_model.bin" file
+    pt_server_path - STRING of the path to ProtTrans model in its server
+    """
+    if(os.path.isfile(f"{pt_dir}/pytorch_model.bin")):
+        model = get_pretrained_model(pt_dir)
+    else:
+        if(not os.path.exists(f"{pt_dir}/")):
+            os.system(f"mkdir -p {pt_dir}/")
+        model = get_pretrained_model(pt_server_path)
+        save_pretrained_model(model, pt_dir)
+
+    tokenizer = get_tokenizer(pt_server_path)
+
+    return (model, tokenizer)
+
 def process_FASTA(fasta_path, split_char="!", id_field=0):
     """
     Reads in fasta file containing multiple sequences.
