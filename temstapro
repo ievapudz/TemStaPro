@@ -139,7 +139,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
             sequences_portion, options.emb_dir, per_res=per_res_mode)
     else:
         seqs_wo_emb_portion = sequences_portion
-   
+
     embeddings = {}
     per_res_dataset = {}
     per_res_sequences = {}
@@ -168,19 +168,9 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
                 "will not be saved.", file=sys.stderr)
 
         try:
-            # Printing embeddings generation statistics
-            print(f"Portion {int(i/options.portion_size)+1}.", file=sys.stderr)
-            print(f"{len(embeddings['mean_representations'].keys())}/{len(list(seqs_wo_emb_portion.keys()))}: "+\
-                "sequences with generated mean embeddings",
-                file=sys.stderr)
-            print(f"{len(embeddings['per_res_representations'].keys())}/{len(list(seqs_wo_emb_portion.keys()))}: "+\
-                "sequences with generated per-residue embeddings",
-                file=sys.stderr)
-            print("%s: time to generate embeddings" % (gen_emb_end - gen_emb_start),
-                file=sys.stderr)
-            print("%s: time to generate embeddings per protein" % ((gen_emb_end - \
-                gen_emb_start)/len(embeddings["mean_representations"])),
-                file=sys.stderr)
+            prottrans_models.print_embeddings_generation_stats(i, 
+                options.portion_size, embeddings, seqs_wo_emb_portion, 
+                gen_emb_start, gen_emb_end)
         except ZeroDivisionError:
             print(f"{sys.argv[0]}: no embeddings were generated.", file=sys.stderr)
             sys.exit(1)
@@ -282,6 +272,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
             orig_headers, labels[1],
             clashes[1], f_per_res, per_res_sequences, options.fasta, "per-segment")
 
+    # Plotting inferences
     if(options.per_res_out and options.plot_dir):
         results.plot_per_res_inferences(averaged_inferences[1], THRESHOLDS, 
         options.plot_dir, window_size=options.window_size_predictions)

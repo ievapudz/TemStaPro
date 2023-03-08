@@ -163,3 +163,28 @@ def save_embeddings(sequences, embeddings, embeddings_directory, embedding_type=
                 embeddings[embedding_type_key][seq_id])
         seq_code = sha256(sequences[seq_id].encode('utf-8')).hexdigest()
         torch.save(seq_data, f"{embeddings_directory}/{embedding_type}_{seq_code}.pt")
+
+def print_embeddings_generation_stats(iteration, portion_size, embeddings, 
+    seqs_wo_emb, start_time, end_time):
+    """
+    Printing embeddings generation statistics.
+
+    iteration - INT index of the iteration (indexing from zero)
+    portion_size - INT size of the processed portion
+    embeddings - DICT with keys 'mean_representations' and 'per_res_representations'
+    seqs_wo_emb - DICT with a portion of sequence ids as keys and amino acid sequences as values
+    start_time - time of the beginning of embeddings' generation
+    end_time - time of the end of embeddings' generation
+    """
+    print(f"Portion {int(iteration/portion_size)+1}.", file=sys.stderr)
+    print(f"{len(embeddings['mean_representations'].keys())}/{len(list(seqs_wo_emb.keys()))}: "+\
+        "sequences with generated mean embeddings",
+        file=sys.stderr)
+    print(f"{len(embeddings['per_res_representations'].keys())}/{len(list(seqs_wo_emb.keys()))}: "+\
+        "sequences with generated per-residue embeddings",
+        file=sys.stderr)
+    print("%s: time to generate embeddings" % (end_time - start_time),
+        file=sys.stderr)
+    print("%s: time to generate embeddings per protein" % ((end_time - \
+        start_time)/len(embeddings["mean_representations"])),
+        file=sys.stderr)
