@@ -11,23 +11,23 @@ import data_process
 import numpy
 from torch.utils.data import DataLoader
 from torch.utils.data import TensorDataset
-from MLP import MLP_C2H2
 import torch
 import model_flow
 import results
 
-PT_MODEL_PATH = "Rostlab/prot_t5_xl_half_uniref50-enc"
-DATASET = "major"
-EMB_TYPE = "mean"
-CLASSIFIER_TYPE = "imbal"
-THRESHOLDS = ["40", "45", "50", "55", "60", "65"]
-SEEDS = ["41", "42", "43", "44", "45"]
-INPUT_SIZE = 1024
-HIDDEN_LAYER_SIZES = [512, 256]
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-TEMPERATURE_RANGES = ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", 
-    "[60-65)", "65<="]
+PARAMETERS = {
+    "PT_MODEL_PATH": "Rostlab/prot_t5_xl_half_uniref50-enc",
+    "DATASET": "major",
+    "EMB_TYPE": "mean",
+    "CLASSIFIER_TYPE": "imbal",
+    "THRESHOLDS": ["40", "45", "50", "55", "60", "65"],
+    "SEEDS": ["41", "42", "43", "44", "45"],
+    "INPUT_SIZE": 1024,
+    "HIDDEN_LAYER_SIZES": [512, 256],
+    "DEVICE": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
+    "TEMPERATURE_RANGES": ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", 
+        "[60-65)", "65<="]
+}
 
 parser = OptionParser()
 
@@ -89,7 +89,7 @@ parser.add_option("--portion-size", dest="portion_size",
 options.window_size_predictions = int(options.window_size_predictions)
 options.segment_size = int(options.segment_size)
 
-CLASSIFIERS_DIR = f"{options.tsp_dir}/models"
+PARAMETERS["CLASSIFIERS_DIR"] = f"{options.tsp_dir}/models"
 
 try:
     assert (options.fasta != None), f"{sys.argv[0]}: a FASTA file is required."
@@ -109,19 +109,8 @@ except AssertionError as message:
 # Loading the ProtTrans model
 print("%s: beginning to load the model " % datetime.now(), file=sys.stderr)
 
-"""
-if(os.path.isfile(f"{options.pt_dir}/pytorch_model.bin")):
-    model = prottrans_models.get_pretrained_model(options.pt_dir)
-else:
-    if(not os.path.exists(f"{options.pt_dir}/")):
-        os.system(f"mkdir -p {options.pt_dir}/")
-    model = prottrans_models.get_pretrained_model(PT_MODEL_PATH)
-    prottrans_models.save_pretrained_model(model, options.pt_dir)
-
-tokenizer = prottrans_models.get_tokenizer(PT_MODEL_PATH)
-"""
 pt_model, tokenizer = prottrans_models.load_model_and_tokenizer(options.pt_dir, 
-    PT_MODEL_PATH)
+    PARAMETERS["PT_MODEL_PATH"])
 
 print("%s: finished loading the model" % datetime.now(), file=sys.stderr)
 
@@ -147,7 +136,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
 
     embeddings = {}
     per_res_dataset = {}
-    per_res_sequences = {}
+    per_res_sequences_portion = {}
  
     if(len(seqs_wo_emb_portion)):
         gen_emb_start = datetime.now()
@@ -183,19 +172,19 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
     # Collecting the required type of embeddings
     dataset = data_process.collect_mean_embeddings(sequences_portion, 
         embeddings=embeddings, emb_dir=options.emb_dir, 
-        input_size=INPUT_SIZE)
+        input_size=PARAMETERS["INPUT_SIZE"])
 
     if(options.per_res_out):
         per_res_dataset = data_process.collect_per_res_embeddings(sequences_portion, 
             orig_seqs, embeddings=embeddings, emb_dir=options.emb_dir, 
-            input_size=INPUT_SIZE)
-        per_res_sequences = per_res_dataset["z_test"]
+            input_size=PARAMETERS["INPUT_SIZE"])
+        per_res_sequences_portion = per_res_dataset["z_test"]
     elif(options.per_segment_out):
         per_res_dataset = data_process.collect_per_res_embeddings(sequences_portion, 
             orig_seqs, embeddings=embeddings,
-            emb_dir=options.emb_dir, input_size=INPUT_SIZE, smoothen=True, 
+            emb_dir=options.emb_dir, input_size=PARAMETERS["INPUT_SIZE"], smoothen=True, 
             window_size=options.segment_size)
-        per_res_sequences = per_res_dataset["z_test"]
+        per_res_sequences_portion = per_res_dataset["z_test"]
 
     test_loader, per_res_test_loader = model_flow.prepare_data_loaders([
         dataset, per_res_dataset], 'test')
@@ -203,36 +192,9 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
     print("%s: beginning to make inferences" % datetime.now(), 
         file=sys.stderr)
 
-    averaged_inferences, binary_inferences, labels, clashes = model_flow.prepare_inference_dictionaries(
-        [sequences_portion, per_res_sequences])
-
-    # Making inferences
-    for j, loader in enumerate([test_loader, per_res_test_loader]):
-        if(loader is None): break
-        for threshold in THRESHOLDS:
-            threshold_inferences = {}
-            for seed in SEEDS:
-                classifier = MLP_C2H2(INPUT_SIZE, HIDDEN_LAYER_SIZES[0], 
-                    HIDDEN_LAYER_SIZES[1])
-                model_path = "%s/%s_%s_%s-%s_s%s.pt" % (
-                    CLASSIFIERS_DIR, EMB_TYPE, DATASET, 
-                    CLASSIFIER_TYPE, threshold, seed)
-                classifier.load_state_dict(torch.load(model_path))
-                classifier.eval()
-
-                classifier.to(DEVICE)
-
-                threshold_inferences[seed] = model_flow.inference_epoch(classifier, 
-                    loader, 
-                    identifiers=list(averaged_inferences[j].keys()), device=DEVICE)
-            # Taking average of the predictions 
-            for seq in threshold_inferences["41"].keys():
-                mean_prediction = 0
-                for seed in SEEDS:
-                     mean_prediction += threshold_inferences[seed][seq]
-                mean_prediction /= len(SEEDS)
-                averaged_inferences[j][seq].append(mean_prediction)
-                binary_inferences[j][seq].append(round(mean_prediction))
+    averaged_inferences, binary_inferences, labels, clashes = model_flow.make_inferences(
+        sequences_portion, per_res_sequences_portion, test_loader, 
+        per_res_test_loader, PARAMETERS) 
 
     print("%s: finished making inferences" % datetime.now(), file=sys.stderr)
             
@@ -242,10 +204,10 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
         for seq in averaged_inferences[j].keys():
             labels[j][seq].append(results.get_temperature_label(
                 averaged_inferences[j][seq], 
-                TEMPERATURE_RANGES, left_hand=True))
+                PARAMETERS["TEMPERATURE_RANGES"], left_hand=True))
             labels[j][seq].append(results.get_temperature_label(
                 averaged_inferences[j][seq],
-                TEMPERATURE_RANGES, left_hand=False))
+                PARAMETERS["TEMPERATURE_RANGES"], left_hand=False))
             clashes[j][seq].append(results.detect_clash(averaged_inferences[j][seq],
                 left_hand=True))
 
@@ -268,14 +230,14 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
 
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
-            clashes[1], f_per_res, per_res_sequences, options.fasta, "per-res")
+            clashes[1], f_per_res, per_res_sequences_portion, options.fasta, "per-res")
     elif(options.per_segment_out):
         f_per_res = open(options.per_segment_out, "w") if i == 0 else open(options.per_segment_out, "a")
         if(i == 0): results.print_inferences_header(f_per_res, options.fasta)
 
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
-            clashes[1], f_per_res, per_res_sequences, options.fasta, "per-segment")
+            clashes[1], f_per_res, per_res_sequences_portion, options.fasta, "per-segment")
 
     # Plotting inferences
     if(options.per_res_out and options.plot_dir):
