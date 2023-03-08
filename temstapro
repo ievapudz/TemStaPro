@@ -241,11 +241,11 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
 
     # Plotting inferences
     if(options.per_res_out and options.plot_dir):
-        results.plot_per_res_inferences(averaged_inferences[1], THRESHOLDS, 
+        results.plot_per_res_inferences(averaged_inferences[1], PARAMETERS["THRESHOLDS"], 
         options.plot_dir, window_size=options.window_size_predictions)
 
     if(options.per_segment_out and options.plot_dir):
-        results.plot_per_res_inferences(averaged_inferences[1], THRESHOLDS, 
+        results.plot_per_res_inferences(averaged_inferences[1], PARAMETERS["THRESHOLDS"], 
             options.plot_dir, 
             smoothen=options.curve_smoothening, 
             window_size=options.window_size_predictions, 
