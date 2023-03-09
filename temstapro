@@ -79,12 +79,20 @@ parser.add_option("--curve-smoothening", "-c", dest="curve_smoothening",
     "plot by making an additional smoothening of the curve.")
 
 parser.add_option("--portion-size", dest="portion_size",
-    default=100, 
+    default=1000, 
     help="option to set the portions', into which to divide the input "+\
     "of sequences, maximum size. If no division is needed, set the "+\
     "option to 0. Default: 100.")
 
+parser.add_option("--version", "-v", dest="version",
+    default=False, action="store_true",
+    help="print version of the program and exit.")
+
 (options, args) = parser.parse_args()
+
+if(options.version):
+    print(f"TemStaPro 0.{os.popen('git rev-list --all --count').read().strip()}.0")
+    exit()
 
 options.window_size_predictions = int(options.window_size_predictions)
 options.segment_size = int(options.segment_size)
