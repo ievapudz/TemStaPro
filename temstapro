@@ -82,7 +82,7 @@ parser.add_option("--portion-size", dest="portion_size",
     default=1000, 
     help="option to set the portions', into which to divide the input "+\
     "of sequences, maximum size. If no division is needed, set the "+\
-    "option to 0. Default: 100.")
+    "option to 0. Default: 1000.")
 
 parser.add_option("--version", "-v", dest="version",
     default=False, action="store_true",
@@ -91,7 +91,7 @@ parser.add_option("--version", "-v", dest="version",
 (options, args) = parser.parse_args()
 
 if(options.version):
-    print(f"TemStaPro 0.{os.popen('git rev-list --all --count').read().strip()}.0")
+    print(f"TemStaPro 0.1.{os.popen('git rev-list --all --count').read().strip()}")
     exit()
 
 options.window_size_predictions = int(options.window_size_predictions)
