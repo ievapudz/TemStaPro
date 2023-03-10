@@ -42,7 +42,7 @@ def get_tokenizer(model_path):
     Fetches the tokenizer accordingly to the model_path
     model_path - STRING that identifies the model whose tokenizer 
 				 should be fetched
-    Returns tokenizer.
+    returns tokenizer
     """
     if(os.path.exists(model_path+'/pytorch_model.bin') and 
         os.path.exists(model_path+'/config.json')):
@@ -60,6 +60,8 @@ def load_model_and_tokenizer(pt_dir, pt_server_path):
     pt_dir - STRING to determine the path to the directory with ProtTrans 
         "pytorch_model.bin" file
     pt_server_path - STRING of the path to ProtTrans model in its server
+    
+    returns (ProtT5-XL model, tokenizer)
     """
     if(os.path.isfile(f"{pt_dir}/pytorch_model.bin")):
         model = get_pretrained_model(pt_dir)
@@ -113,7 +115,8 @@ def get_embeddings(model, tokenizer, seqs, per_residue, per_protein,
         should be returned.
     per_protein indicates that embeddings for a whole protein should be
         returned (average-pooling).
-    Returns results depending on the option in the input.
+
+    returns results depending on the option in the input.
     """
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -193,8 +196,8 @@ def print_embeddings_generation_stats(iteration, portion_size, embeddings,
     portion_size - INT size of the processed portion
     embeddings - DICT with keys 'mean_representations' and 'per_res_representations'
     seqs_wo_emb - DICT with a portion of sequence ids as keys and amino acid sequences as values
-    start_time - time of the beginning of embeddings' generation
-    end_time - time of the end of embeddings' generation
+    start_time - datetime object of the beginning of embeddings' generation
+    end_time - datetime object of the end of embeddings' generation
     """
     print(f"Portion {int(iteration/portion_size)+1}.", file=sys.stderr)
     print(f"{len(embeddings['mean_representations'].keys())}/{len(list(seqs_wo_emb.keys()))}: "+\

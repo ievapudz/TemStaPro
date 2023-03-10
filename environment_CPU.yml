@@ -71,4 +71,3 @@ dependencies:
   - yaml=0.2.5=h7f98852_2
   - zipp=3.10.0=pyhd8ed1ab_0
   - zlib=1.2.13=h5eee18b_0
-prefix: /home/ievap/.conda/envs/temstapro_env_CPU
