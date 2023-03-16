@@ -248,14 +248,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
             clashes[1], f_per_res, per_res_sequences_portion, options.fasta, "per-segment")
 
     # Plotting inferences
-    if(options.per_res_out and options.plot_dir):
-        results.plot_per_res_inferences(averaged_inferences[1], PARAMETERS["THRESHOLDS"], 
-        options.plot_dir, window_size=options.window_size_predictions)
+    results.plot_inferences(options.per_res_out, options.per_segment_out, 
+        averaged_inferences[1], PARAMETERS["THRESHOLDS"], options.plot_dir, 
+        options.window_size_predictions, options.segment_size, options.curve_smoothening)
 
-    if(options.per_segment_out and options.plot_dir):
-        results.plot_per_res_inferences(averaged_inferences[1], PARAMETERS["THRESHOLDS"], 
-            options.plot_dir, 
-            smoothen=options.curve_smoothening, 
-            window_size=options.window_size_predictions, 
-            x_label=f"window (k={options.segment_size}) index", 
-        title="Combined residue predictions")

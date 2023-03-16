@@ -172,22 +172,21 @@ def plot_per_res_inferences(averaged_inferences, thresholds, plot_dir,
 
         y_values = numpy.array(y_values).T
         
-        for model in range(len(thresholds)):
-            plt.figure("%d models' per-residue inferences for %s" % \
-                (model, or_seq_id))
+        for i, threshold in enumerate(thresholds):
+            plt.figure(f"t{threshold} models' per-residue inferences for {seq_id}")
             color = "lightgrey" if(smoothen) else "navy"
-            plt.plot(x_values, y_values[model], linewidth=1, color=color)
+            plt.plot(x_values, y_values[i], linewidth=1, color=color)
             plt.xlabel(x_label)
             plt.ylabel("prediction")
-            plt.title(f"{title} of {or_seq_id} using threshold {thresholds[model]}")
+            plt.title(f"{title} of {or_seq_id} using threshold {threshold}", wrap=True)
             plt.ylim(bottom=0, top=1)
             j = 0
             y_smoothened_values = []
   
             if(smoothen):
-                while j < len(y_values[model])-WINDOW_SIZE+1:
+                while j < len(y_values[i])-WINDOW_SIZE+1:
                     window_average = round(numpy.sum(
-                        y_values[model][j:j+WINDOW_SIZE])/WINDOW_SIZE, 2)
+                        y_values[i][j:j+WINDOW_SIZE])/WINDOW_SIZE, 2)
           
                     y_smoothened_values.append(window_average)
                     j += 1
@@ -195,7 +194,36 @@ def plot_per_res_inferences(averaged_inferences, thresholds, plot_dir,
                 plt.plot(x_values[int(WINDOW_SIZE/2):-int(WINDOW_SIZE/2)], 
                     y_smoothened_values, linewidth=1, color="navy")
             
-            plt.savefig("%s/%s_per_residue_plot_%d.svg" % (plot_dir, 
-                or_seq_id, model), format="svg")
+            plt.savefig(f"{plot_dir}/{or_seq_id}_per_residue_plot_t{threshold}.svg", format="svg")
 
         offset += len(x_values)
+
+def plot_inferences(per_res_out, per_segment_out, averaged_inferences, thresholds, plot_dir,
+    window_size, segment_size, smoothen):
+    """
+    Deciding and calling, which inferences to plot.
+
+    per_res_out - STRING or None to determine whether per-residue predictions 
+        are required
+    per_segment_out - STRING or None to determine whether per-segment 
+        predictions are required
+    averaged_inferences - DICT that keeps each sequence's inferences 
+        (averaged of all threshold models))
+    thresholds - LIST with binary models' temperature thresholds
+    plot_dir - STRING that determines the directory where plots should 
+        be saved
+    window_size - INT of the window size for curve smoothening
+    segment_size - INT of the segment size of combined residues
+    smoothen - BOOL indicates to plot smoothened curve
+    """
+    if(plot_dir is None): return 
+    if(per_res_out):
+        plot_per_res_inferences(averaged_inferences, thresholds,
+            plot_dir, window_size=window_size)
+
+    if(per_segment_out):
+        plot_per_res_inferences(averaged_inferences, thresholds,
+            plot_dir, smoothen=smoothen,
+            window_size=window_size,
+            x_label=f"segment (k={segment_size}) index",
+        title="Per-segment predictions")
