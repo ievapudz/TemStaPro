@@ -5,9 +5,9 @@
 Any modern CPU can be used for calculations. Although, have 
 in mind that average laptop CPU (e.g. Intel i7-8565U), 
 will take ~60 times longer (~10 hours) to predict thermostability of 1000 sequences (average length of 
-1137 residues, using portion size of 0 sequences), 
+1137 residues, using `--portion-size 0`), 
 compared to a GPU 
-version of a program
+version of a program (~10 minutes)
 running on a system with NVIDIA GeForce RTX 2080 Ti 
 and Intel i9-9900K CPU.
 
