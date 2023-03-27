@@ -163,6 +163,4 @@ classifiers' predictions or not ('-').
 
 If plotting option is chosen, five plots (for each classifiers' predictions) 
 will be created. The naming convention is 
-'[FASTA header of protein]\_per\_residue\_plot\_[0-5].svg'
-Integers from 0 to 5 mark with respect to which temperature threshold the predictions
-were plotted. 
+'[FASTA header of protein]\_per\_residue\_plot\_t[40|45|50|55|60|65].svg'
