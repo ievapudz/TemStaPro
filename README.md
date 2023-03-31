@@ -164,3 +164,8 @@ classifiers' predictions or not ('-').
 If plotting option is chosen, five plots (for each classifiers' predictions) 
 will be created. The naming convention is 
 '[FASTA header of protein]\_per\_residue\_plot\_t[40|45|50|55|60|65].svg'
+
+## Dataset availability
+
+Datasets that were used to train, validate, and test TemStaPro are available in 
+[Zenodo.](https://doi.org/10.5281/zenodo.7743638)
