@@ -66,16 +66,16 @@ parser.add_option("--window-size-predictions", "-w",
     dest="window_size_predictions",
     default=81, help="option to set the window size for average smoothening "+\
     "of per residue predictions for plotting (option for 'per-res-output' "+\
-    "and 'per-res-smooth-output'). Default: 81.")
+    "and 'per-segment-output'). Default: 81.")
 
 parser.add_option("--per-residue-plot-dir", "-p", dest="plot_dir",
     default=None, help="path to the directory to which inferences "+\
     "plots will be saved (option for 'per-res-output' and "+\
-    "'per-res-smooth-output' modes. Default: './'.")
+    "'per-res-segment-output' modes. Default: './'.")
 
 parser.add_option("--curve-smoothening", "-c", dest="curve_smoothening",
     default=False, action="store_true", 
-    help="option for 'per-res-smooth-output' run mode, which adjusts the "+\
+    help="option for 'per-segment-output' run mode, which adjusts the "+\
     "plot by making an additional smoothening of the curve.")
 
 parser.add_option("--portion-size", dest="portion_size",
