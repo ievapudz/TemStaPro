@@ -2,7 +2,7 @@
 
 This directory contains data related to TemStaPro development.
 
-`SupplementaryFileC2EPsPredictions.tsv` file contains global  
+`SupplementaryFileC2EPsPredictions.tsv` file contains global 
 thermostability predictions made by TemStaPro using mean embeddings 
 for Class II effector proteins(C2EP), which is a collection of 
 proteins from Cas9, Cas12, Cas13, and TnpB groups.
