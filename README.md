@@ -83,9 +83,24 @@ conda install -c conda-forge sentencepiece
 conda install -c conda-forge matplotlib
 ```
 
+## Downloading the program
+
+To download the program, go to the directory of your choice in your system.
+If you have `git` installed, run the following command:
+
+```
+git clone https://github.com/ievapudz/TemStaPro.git
+```
+
+If there is no `git` in your system, press on the (green) button 'Code'
+and then 'Download ZIP'. The ZIP archyve containing the program's code will be
+shortly downloaded. Next step is to decompress the archyve in the directory of 
+your choice.
+
 ## Testing the set-up
 
-Test if the environment was installed successfully:
+Test if the environment was installed and the program was downloaded 
+successfully:
 ```
 make all
 ```
