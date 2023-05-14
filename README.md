@@ -157,14 +157,9 @@ amino acids. If '-p' option is given, a plot is generated. This mode also has
 
 ## Running program with SLURM
 
-In order to run the program using SLURM workload manager,
-(`sbatch` command in particular) the program should be run 
-as a script with working directory
-chosen to be the one with the program and its dependencies.
-
 ```
-sbatch ./temstapro -f tests/data/long_sequence.fasta \
-    -d ./ProtTrans/ -t './' --mean-output ../data/voting_algo/thermo_data.tsv
+srun ./temstapro -f tests/data/long_sequence.fasta \
+    -d ./ProtTrans/ -t './' --mean-output tests/outputs/long_sequence.tsv
 ```
 
 ## Interpretation of the results
