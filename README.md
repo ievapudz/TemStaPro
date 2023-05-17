@@ -83,9 +83,24 @@ conda install -c conda-forge sentencepiece
 conda install -c conda-forge matplotlib
 ```
 
+## Downloading the program
+
+To download the program, go to the directory of your choice in your system.
+If you have `git` installed, run the following command:
+
+```
+git clone https://github.com/ievapudz/TemStaPro.git
+```
+
+If there is no `git` in your system, press on the (green) button 'Code'
+and then 'Download ZIP'. The ZIP archyve containing the program's code will be
+shortly downloaded. Next step is to decompress the archyve in the directory of 
+your choice.
+
 ## Testing the set-up
 
-Test if the environment was installed successfully:
+Test if the environment was installed and the program was downloaded 
+successfully:
 ```
 make all
 ```
@@ -142,14 +157,9 @@ amino acids. If '-p' option is given, a plot is generated. This mode also has
 
 ## Running program with SLURM
 
-In order to run the program using SLURM workload manager,
-(`sbatch` command in particular) the program should be run 
-as a script with working directory
-chosen to be the one with the program and its dependencies.
-
 ```
-sbatch ./temstapro -f tests/data/long_sequence.fasta \
-    -d ./ProtTrans/ -t './' --mean-output ../data/voting_algo/thermo_data.tsv
+srun ./temstapro -f tests/data/long_sequence.fasta \
+    -d ./ProtTrans/ -t './' --mean-output tests/outputs/long_sequence.tsv
 ```
 
 ## Interpretation of the results
