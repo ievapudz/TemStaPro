@@ -3,17 +3,13 @@
 # Program that makes thermostability predictions
 
 from optparse import OptionParser
-import sys
 from datetime import datetime
+import sys
 import os
-import prottrans_models
-import data_process
 import numpy
 from torch.utils.data import DataLoader
 from torch.utils.data import TensorDataset
 import torch
-import model_flow
-import results
 
 PARAMETERS = {
     "PT_MODEL_PATH": "Rostlab/prot_t5_xl_half_uniref50-enc",
@@ -110,6 +106,15 @@ try:
 except AssertionError as message:
     print(message, file=sys.stderr)
     exit()
+
+# Importing local modules
+
+sys.path.append(options.tsp_dir)
+
+import prottrans_models
+import data_process
+import model_flow
+import results
 
 # Standardization of the FASTA file
 (sequences, orig_headers, orig_seqs) = prottrans_models.process_FASTA(options.fasta)
