@@ -226,8 +226,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
 
     # Processing printing of mean predictions
     if(options.mean_out):
-        if(not os.path.exists(options.mean_out)):
-            os.system(f"mkdir -p {os.path.dirname(options.mean_out)}")
+        os.system(f"mkdir -p {os.path.dirname(options.mean_out)}")
         f_mean = open(options.mean_out, "w") if i == 0 else open(options.mean_out, "a")
     else:
         f_mean = sys.stdout
@@ -240,7 +239,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
 
     # Printing per-residue inferences
     if(options.per_res_out):
-        # TODO: include checking if the path of the file exists
+        os.system(f"mkdir -p {os.path.dirname(options.per_res_out)}")
         f_per_res = open(options.per_res_out, "w") if i == 0 else open(options.per_res_out, "a")
         if(i == 0): results.print_inferences_header(f_per_res, options.fasta)
 
@@ -248,7 +247,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
             orig_headers, labels[1],
             clashes[1], f_per_res, per_res_sequences_portion, options.fasta, "per-res")
     elif(options.per_segment_out):
-        # TODO: include checking if the path of the file exists
+        os.system(f"mkdir -p {os.path.dirname(options.per_segment_out)}")
         f_per_res = open(options.per_segment_out, "w") if i == 0 else open(options.per_segment_out, "a")
         if(i == 0): results.print_inferences_header(f_per_res, options.fasta)
 
@@ -257,7 +256,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
             clashes[1], f_per_res, per_res_sequences_portion, options.fasta, "per-segment")
 
     # Plotting inferences
-    # TODO: include checking if the path of the directory for the plots exists
+    os.system(f"mkdir -p {options.plot_dir}")
     results.plot_inferences(options.per_res_out, options.per_segment_out, 
         averaged_inferences[1], PARAMETERS["THRESHOLDS"], options.plot_dir, 
         options.window_size_predictions, options.segment_size, options.curve_smoothening)
