@@ -4,6 +4,7 @@ adapted from ProtTrans authors' Google Colab notebook
 """
 
 from transformers import T5EncoderModel, T5Tokenizer
+from transformers import PretrainedConfig
 import torch
 import os
 import sys
@@ -28,15 +29,6 @@ def get_pretrained_model(model_path):
 
     return model
 
-def save_pretrained_model(model, path_to_dir):
-    """
-    Saves the model to the file (PT).
-    model - OBJ [PreTrainedModel] of the model to save
-    path_to_dir - STRING that identifies the destination to save the model
-    """
-
-    model.save_pretrained(path_to_dir)
-
 def get_tokenizer(model_path):
     """
     Fetches the tokenizer accordingly to the model_path
@@ -44,13 +36,8 @@ def get_tokenizer(model_path):
 				 should be fetched
     returns tokenizer
     """
-    if(os.path.exists(model_path+'/pytorch_model.bin') and 
-        os.path.exists(model_path+'/config.json')):
-        tokenizer = T5Tokenizer.from_pretrained(model_path+'/pytorch_model.bin',
-	    config=model_path+'/config.json', do_lower_case=False)
-    else:
-        tokenizer = T5Tokenizer.from_pretrained(model_path, do_lower_case=False)
-	
+
+    tokenizer = T5Tokenizer.from_pretrained(model_path, do_lower_case=False)	
     return tokenizer
 
 def load_model_and_tokenizer(pt_dir, pt_server_path):
@@ -63,15 +50,24 @@ def load_model_and_tokenizer(pt_dir, pt_server_path):
     
     returns (ProtT5-XL model, tokenizer)
     """
+    if(not os.path.exists(f"{pt_dir}/")):
+        os.system(f"mkdir -p {pt_dir}/")
+
     if(os.path.isfile(f"{pt_dir}/pytorch_model.bin")):
+        # Only loading the model
         model = get_pretrained_model(pt_dir)
     else:
-        if(not os.path.exists(f"{pt_dir}/")):
-            os.system(f"mkdir -p {pt_dir}/")
+        # Downloading and saving the model
         model = get_pretrained_model(pt_server_path)
-        save_pretrained_model(model, pt_dir)
+        model.save_pretrained(pt_dir)
 
-    tokenizer = get_tokenizer(pt_server_path)
+    if(os.path.isfile(f"{pt_dir}/tokenizer_config.json")):
+        # Only loading the tokenizer
+        tokenizer = get_tokenizer(pt_dir)
+    else:
+        # Downloading and saving the tokenizer
+        tokenizer = get_tokenizer(pt_server_path)
+        tokenizer.save_pretrained(pt_dir)
 
     return (model, tokenizer)
 

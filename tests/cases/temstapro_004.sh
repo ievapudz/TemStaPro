@@ -2,8 +2,7 @@
 
 # Testing downloading of the ProtTrans model
 
-rm -f ./ProtTrans/config.json
-rm -f ./ProtTrans/pytorch_model.bin
+rm -f ./ProtTrans/*
 
 ./temstapro -f ./tests/data/long_sequence_2.fasta \
     -e 'tests/outputs' -d './ProtTrans/' --mean-out tests/outputs/004.tmp
