@@ -4,7 +4,6 @@ adapted from ProtTrans authors' Google Colab notebook
 """
 
 from transformers import T5EncoderModel, T5Tokenizer
-from transformers import PretrainedConfig
 import torch
 import os
 import sys
