@@ -16,13 +16,13 @@ PARAMETERS = {
     "DATASET": "major",
     "EMB_TYPE": "mean",
     "CLASSIFIER_TYPE": "imbal",
-    "THRESHOLDS": ["40", "45", "50", "55", "60", "65"],
+    "THRESHOLDS": ["40", "45", "50", "55", "60", "65", "70", "75", "80"],
     "SEEDS": ["41", "42", "43", "44", "45"],
     "INPUT_SIZE": 1024,
     "HIDDEN_LAYER_SIZES": [512, 256],
     "DEVICE": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
     "TEMPERATURE_RANGES": ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", 
-        "[60-65)", "65<="]
+        "[60-65)", "[65-70)", "[70-75)", "[75-80)", "80<="]
 }
 
 parser = OptionParser()
