@@ -18,7 +18,8 @@ PARAMETERS = {
     "CLASSIFIER_TYPE": "imbal",
     "THRESHOLDS": {
         ":(40-65]:": ["40", "45", "50", "55", "60", "65"],
-        ":(20-80]:": ["20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80"],
+        ":(20-80]:": ["20", "25", "30", "35", "40", "45", "50", "55", 
+            "60", "65", "70", "75", "80"],
         ":(20]:" : ["20"],
         ":(20-45]:": ["20", "25", "30", "35", "40", "45"],
         ":(45-75]:": ["45", "50", "55", "60", "65", "70", "75"],
@@ -29,17 +30,24 @@ PARAMETERS = {
     "HIDDEN_LAYER_SIZES": [512, 256],
     "DEVICE": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
     "TEMPERATURE_RANGES": {
-        ":(40-65]:": ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", "[60-65)", "65<="],
-        ":(20-80]:": ["<20", "[20-25)", "[25-30)", "[30-35)", "[35-40)", "[40-45)", "[45-50)", "[50-55)", "[55-60)", "[60-65)", "[65-70)", "[70-75)", "[75-80)", "80<="],
+        ":(40-65]:": ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", 
+            "[60-65)", "65<="],
+        ":(20-80]:": ["<20", "[20-25)", "[25-30)", "[30-35)", "[35-40)", 
+            "[40-45)", "[45-50)", "[50-55)", "[55-60)", "[60-65)", "[65-70)", 
+            "[70-75)", "[75-80)", "80<="],
         ":(20]:": ["<20", "20<="],
-        ":(20-45]:": ["<20", "[20-25)", "[25-30)", "[30-35)", "[35-40)", "[40-45)", "45<="],
-        ":(45-75]:": ["<45", "[50-55)", "[55-60)", "[60-65)", "[65-70)", "[70-75)", "75<="],
+        ":(20-45]:": ["<20", "[20-25)", "[25-30)", "[30-35)", "[35-40)", 
+            "[40-45)", "45<="],
+        ":(45-75]:": ["<45", "[50-55)", "[55-60)", "[60-65)", "[65-70)", 
+            "[70-75)", "75<="],
         ":(75-80]:": ["<75", "[75-80)", "80<="]
     },
     "THERMOPHILICITY_LABELS": {
         "psychrophilic": "<20",
-        "mesophilic": ["20<=", "[20-25)", "[25-30)", "[30-35)", "[35-40)", "[40-45)", "<45"],
-        "thermophilic": ["45<=", "[45-50)", "[50-55)", "[55-60)", "[60-65)", "65<=", "[65-70)", "[70-75)", "<75"],
+        "mesophilic": ["20<=", "[20-25)", "[25-30)", "[30-35)", "[35-40)", 
+            "[40-45)", "<45"],
+        "thermophilic": ["45<=", "[45-50)", "[50-55)", "[55-60)", "[60-65)", 
+            "65<=", "[65-70)", "[70-75)", "<75"],
         "hyperthermophilic": ["[75-80)", "75<=", "80<="]
     }
 }
@@ -65,6 +73,10 @@ parser.add_option("--thresholds-range", dest="thresholds_range",
     help="set the temperature thresholds' range to be included in the output. "+\
     f"Options: {list(PARAMETERS['TEMPERATURE_RANGES'].keys())}. "+\
     f"Default: '{list(PARAMETERS['TEMPERATURE_RANGES'].keys())[0]}'.")
+
+parser.add_option("--thermophilicity", dest="thermophilicity",
+    default=False, action="store_true", help="option to set "+\
+    "to print the thermophilicity column in the output")
 
 parser.add_option("--mean-output", dest="mean_out",
     default=None, help="path to the output TSV file with mean predictions. "+\
@@ -269,12 +281,13 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
         f_mean = sys.stdout
 
     if(i == 0): results.print_inferences_header(f_mean, 
-        PARAMETERS["THRESHOLDS"][options.thresholds_range], options.fasta)
+        PARAMETERS["THRESHOLDS"][options.thresholds_range], options.fasta, 
+        options.thermophilicity)
 
     results.print_inferences(averaged_inferences[0], binary_inferences[0],
         orig_headers, labels[0], clashes[0], 
         PARAMETERS["THERMOPHILICITY_LABELS"], f_mean, orig_seqs,
-        options.fasta, "mean")
+        options.fasta, "mean", options.thermophilicity)
 
     # Printing per-residue inferences
     if(options.per_res_out):
@@ -286,7 +299,8 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
             clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"],
-            f_per_res, per_res_sequences_portion, options.fasta, "per-res")
+            f_per_res, per_res_sequences_portion, options.fasta, "per-res", 
+            options.thermophilicity)
     elif(options.per_segment_out):
         os.system(f"mkdir -p {os.path.dirname(options.per_segment_out)}")
         f_per_res = open(options.per_segment_out, "w") if i == 0 else open(options.per_segment_out, "a")
@@ -296,7 +310,8 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
             clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"], f_per_res, 
-            per_res_sequences_portion, options.fasta, "per-segment")
+            per_res_sequences_portion, options.fasta, "per-segment", 
+            options.thermophilicity)
 
     # Plotting inferences
     os.system(f"mkdir -p {options.plot_dir}")

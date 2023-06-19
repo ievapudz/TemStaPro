@@ -72,7 +72,8 @@ def detect_clash(predictions, left_hand=True):
             elif(len(predictions) == 1):
                 return "-"
 
-def print_inferences_header(file_handle, thresholds, input_fasta=False):
+def print_inferences_header(file_handle, thresholds, input_fasta=False, 
+    thermophilicity=False):
     """
     Print inferences table header.
 
@@ -80,18 +81,23 @@ def print_inferences_header(file_handle, thresholds, input_fasta=False):
     thresholds - LIST of thresholds that are used
     input_fasta - BOOLEAN that determines whether the input was FASTA (True)
         or NPZ (False)
+    thermophilicity - BOOLEAN that determines whether to print the 
+        thermophilicity column
     """
 
     predictions_columns_names = ""
     for threshold in thresholds:
         predictions_columns_names += f"t{threshold}_binary\tt{threshold}_raw\t"
 
-    print(f"protein_id\tposition\tsequence\tlength\t{predictions_columns_names}"+\
-        f"left_hand_label\tright_hand_label\tclash\tthermophilicity", file=file_handle)
+    header = f"protein_id\tposition\tsequence\tlength\t{predictions_columns_names}"+\
+        f"left_hand_label\tright_hand_label\tclash"
+    if(thermophilicity): header += "\tthermophilicity"
+
+    print(header, file=file_handle)
 
 def print_inferences(averaged_inferences, binary_inferences, original_headers,
     labels, clashes, thermophilicity_labels, file_handle, sequences=None, 
-    input_fasta=False, run_mode='mean'):
+    input_fasta=False, run_mode='mean', print_thermophilicity=False):
     """
     Print results.
 
@@ -108,6 +114,8 @@ def print_inferences(averaged_inferences, binary_inferences, original_headers,
         or NPZ (False)
     run_mode - STRING that determines which run mode is executed:
         'mean', 'per-res', 'per-segment'
+    print_thermophilicity - BOOLEAN that determines to print the 
+        thermophilicity column
     """
 
     if(sequences is None): return
@@ -131,15 +139,22 @@ def print_inferences(averaged_inferences, binary_inferences, original_headers,
         elif(run_mode == "per-res"):
             out_header = original_headers["_".join(proc_header.split("_")[0:-1])]
             position = str(int(proc_header.split("_")[-1])+1)
+       
+        output_line = "%s\t%s\t%s\t%d\t%s\t%s\t%s" % (out_header, position, 
+            sequences[proc_header],
+            len(sequences[proc_header]), "\t".join(merged_inferences),
+            "\t".join(labels[proc_header]), clashes[proc_header][0])
         
         # Choosing the thermophilicity label
-        thermophilicity = "undetermined"
-        if(labels[proc_header][0] == labels[proc_header][1]):
-            for t in list(thermophilicity_labels.keys()):
-                if(labels[proc_header][0] in thermophilicity_labels[t]):
-                    thermophilicity = t
-                    break
-
+        if(print_thermophilicity):
+            thermophilicity = "undetermined"
+            if(labels[proc_header][0] == labels[proc_header][1]):
+                for t in list(thermophilicity_labels.keys()):
+                    if(labels[proc_header][0] in thermophilicity_labels[t]):
+                        thermophilicity = t
+                        break
+            output_line += f"\t{thermophilicity}"
+        """
         if(input_fasta):
             print("%s\t%s\t%s\t%d\t%s\t%s\t%s\t%s" % (out_header, position, 
                 sequences[proc_header],
@@ -149,7 +164,8 @@ def print_inferences(averaged_inferences, binary_inferences, original_headers,
         else:
             print("%s\t%s\t%s\t%s\t%s" % (out_header, position, "\t".join(merged_inferences),
                 "\t".join(labels[proc_header]), clashes[proc_header][0]), file=file_handle)
-
+        """
+        print(output_line, file=file_handle)
 
 def plot_per_res_inferences(averaged_inferences, thresholds, plot_dir, 
     smoothen=True, window_size=21, x_label="residue index", 
