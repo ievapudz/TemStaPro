@@ -72,6 +72,7 @@ def print_inferences_header(file_handle, thresholds, input_fasta=False):
     Print inferences table header.
 
     file_handle - FILE to which the results will be printed
+    thresholds - LIST of thresholds that are used
     input_fasta - BOOLEAN that determines whether the input was FASTA (True)
         or NPZ (False)
     """
@@ -82,21 +83,6 @@ def print_inferences_header(file_handle, thresholds, input_fasta=False):
 
     print(f"protein_id\tposition\tsequence\tlength\t{predictions_columns_names}"+\
         f"left_hand_label\tright_hand_label\tclash", file=file_handle)
-    """
-    if(input_fasta):
-        print("protein_id\tposition\tsequence\tlength\t"+\
-            "t40_binary\tt40_raw\tt45_binary\tt45_raw\tt50_binary\tt50_raw\t"+\
-            "t55_binary\tt55_raw\tt60_binary\tt60_raw\tt65_binary\tt65_raw\t"+\
-            "t70_binary\tt70_raw\tt75_binary\tt75_raw\tt80_binary\tt80_raw\t"+\
-            "left_hand_label\tright_hand_label\tclash", file=file_handle)
-    else:
-        print("protein_id\tposition\t"+\
-            "t40_binary\tt40_raw\tt45_binary\tt45_raw\tt50_binary\tt50_raw\t"+\
-            "t55_binary\tt55_raw\tt60_binary\tt60_raw\tt65_binary\tt65_raw\t"+\
-            "t70_binary\tt70_raw\tt75_binary\tt75_raw\tt80_binary\tt80_raw\t"+\
-            "left_hand_label\tright_hand_label\tclash", file=file_handle)
-    """
-    
 
 def print_inferences(averaged_inferences, binary_inferences, original_headers,
     labels, clashes, file_handle, sequences=None, input_fasta=False, 
