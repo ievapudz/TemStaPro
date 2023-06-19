@@ -35,6 +35,12 @@ PARAMETERS = {
         ":(20-45]:": ["<20", "[20-25)", "[25-30)", "[30-35)", "[35-40)", "[40-45)", "45<="],
         ":(45-75]:": ["<45", "[50-55)", "[55-60)", "[60-65)", "[65-70)", "[70-75)", "75<="],
         ":(75-80]:": ["<75", "[75-80)", "80<="]
+    },
+    "THERMOPHILICITY_LABELS": {
+        "psychrophilic": "<20",
+        "mesophilic": ["20<=", "[20-25)", "[25-30)", "[30-35)", "[35-40)", "[40-45)", "<45"],
+        "thermophilic": ["45<=", "[45-50)", "[50-55)", "[55-60)", "[60-65)", "65<=", "[65-70)", "[70-75)", "<75"],
+        "hyperthermophilic": ["[75-80)", "75<=", "80<="]
     }
 }
 
@@ -266,7 +272,8 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
         PARAMETERS["THRESHOLDS"][options.thresholds_range], options.fasta)
 
     results.print_inferences(averaged_inferences[0], binary_inferences[0],
-        orig_headers, labels[0], clashes[0], f_mean, orig_seqs,
+        orig_headers, labels[0], clashes[0], 
+        PARAMETERS["THERMOPHILICITY_LABELS"], f_mean, orig_seqs,
         options.fasta, "mean")
 
     # Printing per-residue inferences
@@ -278,7 +285,8 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
 
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
-            clashes[1], f_per_res, per_res_sequences_portion, options.fasta, "per-res")
+            clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"],
+            f_per_res, per_res_sequences_portion, options.fasta, "per-res")
     elif(options.per_segment_out):
         os.system(f"mkdir -p {os.path.dirname(options.per_segment_out)}")
         f_per_res = open(options.per_segment_out, "w") if i == 0 else open(options.per_segment_out, "a")
@@ -287,7 +295,8 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
 
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
-            clashes[1], f_per_res, per_res_sequences_portion, options.fasta, "per-segment")
+            clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"], f_per_res, 
+            per_res_sequences_portion, options.fasta, "per-segment")
 
     # Plotting inferences
     os.system(f"mkdir -p {options.plot_dir}")
