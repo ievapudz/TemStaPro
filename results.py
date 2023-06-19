@@ -55,17 +55,22 @@ def detect_clash(predictions, left_hand=True):
             elif(j and round(float(predictions[j-1])) >=
                 round(float(predictions[j])) and j == len(predictions)-1):
                 return "-"
+            elif(len(predictions) == 1):
+                return "-"
+                
     else:
         for j, pred in enumerate(predictions[::-1]):
             if(j != len(predictions)-1 and round(float(predictions[j-1])) <
                 round(float(predictions[j]))):
-                return "yes"
+                return "*"
             elif(j != len(predictions)-1 and round(float(predictions[j-1])) >=
                 round(float(predictions[j])) and j != len(predictions)-2):
                 continue
             elif(j != len(predictions)-1 and round(float(predictions[j-1])) >=
                 round(float(predictions[j])) and j == len(predictions)-2):
-                return "no"
+                return "-"
+            elif(len(predictions) == 1):
+                return "-"
 
 def print_inferences_header(file_handle, thresholds, input_fasta=False):
     """
