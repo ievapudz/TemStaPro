@@ -35,6 +35,10 @@ PARAMETERS = {
         "thermophilic": ["[45-50)", "[50-55)", "[55-60)", "[60-65)", 
             "65<=", "[65-70)", "[70-75)", "<75"],
         "hyperthermophilic": ["[75-80)", "80<="]
+    },
+    "PRINT_THERMOPHILICITY": {
+        ":(40-65]:": False,
+        ":(40-80]:": True
     }
 }
 
@@ -59,10 +63,6 @@ parser.add_option("--thresholds-range", dest="thresholds_range",
     help="set the temperature thresholds' range to be included in the output. "+\
     f"Options: {list(PARAMETERS['TEMPERATURE_RANGES'].keys())}. "+\
     f"Default: '{list(PARAMETERS['TEMPERATURE_RANGES'].keys())[0]}'.")
-
-parser.add_option("--thermophilicity", dest="thermophilicity",
-    default=False, action="store_true", help="option to set "+\
-    "to print the thermophilicity column in the output")
 
 parser.add_option("--mean-output", dest="mean_out",
     default=None, help="path to the output TSV file with mean predictions. "+\
@@ -268,12 +268,12 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
 
     if(i == 0): results.print_inferences_header(f_mean, 
         PARAMETERS["THRESHOLDS"][options.thresholds_range], 
-        options.thermophilicity)
+        PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
 
     results.print_inferences(averaged_inferences[0], binary_inferences[0],
         orig_headers, labels[0], clashes[0], 
         PARAMETERS["THERMOPHILICITY_LABELS"], f_mean, orig_seqs,
-        "mean", options.thermophilicity)
+        "mean", PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
 
     # Printing per-residue inferences
     if(options.per_res_out):
@@ -281,23 +281,25 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
         f_per_res = open(options.per_res_out, "w") if i == 0 else open(options.per_res_out, "a")
         if(i == 0): results.print_inferences_header(f_per_res, 
             PARAMETERS["THRESHOLDS"][options.thresholds_range], 
-            options.thermophilicity)
+            PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
 
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
             clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"],
             f_per_res, per_res_sequences_portion, "per-res", 
-            options.thermophilicity)
+            PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
     elif(options.per_segment_out):
         os.system(f"mkdir -p {os.path.dirname(options.per_segment_out)}")
         f_per_res = open(options.per_segment_out, "w") if i == 0 else open(options.per_segment_out, "a")
         if(i == 0): results.print_inferences_header(f_per_res, 
-            PARAMETERS["THRESHOLDS"][options.thresholds_range], options.thermophilicity)
+            PARAMETERS["THRESHOLDS"][options.thresholds_range],
+            PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
 
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
             clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"], f_per_res, 
-            per_res_sequences_portion, "per-segment", options.thermophilicity)
+            per_res_sequences_portion, "per-segment",
+            PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
 
     # Plotting inferences
     os.system(f"mkdir -p {options.plot_dir}")
