@@ -24,6 +24,7 @@ PARAMETERS = {
     "INPUT_SIZE": 1024,
     "HIDDEN_LAYER_SIZES": [512, 256],
     "DEVICE": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
+    "THRESHOLDS_RANGE": ":(40-65]:",
     "TEMPERATURE_RANGES": {
         ":(40-65]:": ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", 
             "[60-65)", "65<="],
@@ -58,11 +59,10 @@ parser.add_option("--temstapro-directory", "-t", dest="tsp_dir",
     default='./', help="path to the directory of TemStaPro program "+\
     "with its dependencies.")
 
-parser.add_option("--thresholds-range", dest="thresholds_range",
-    default=list(PARAMETERS['TEMPERATURE_RANGES'].keys())[0], 
-    help="set the temperature thresholds' range to be included in the output. "+\
-    f"Options: {list(PARAMETERS['TEMPERATURE_RANGES'].keys())}. "+\
-    f"Default: '{list(PARAMETERS['TEMPERATURE_RANGES'].keys())[0]}'.")
+parser.add_option("--more-thresholds", dest="more_thresholds",
+    action="store_true", help="option for the mode that outputs "+\
+    "additional predictions for upper temperature thresholds and the "+\
+    "thremophilicity label")
 
 parser.add_option("--mean-output", dest="mean_out",
     default=None, help="path to the output TSV file with mean predictions. "+\
@@ -115,16 +115,7 @@ if(options.version):
 
 options.window_size_predictions = int(options.window_size_predictions)
 options.segment_size = int(options.segment_size)
-options.thresholds_range = options.thresholds_range.split(' ')[0]
-
-try:
-    assert (options.thresholds_range in list(PARAMETERS['THRESHOLDS'].keys())), (
-        f"{sys.argv[0]}: a range {options.thresholds_range} is not accepted. "+\
-        f"Please choose a range from: {list(PARAMETERS['TEMPERATURE_RANGES'])}"
-    )
-except AssertionError as message:
-    print(message, file=sys.stderr)
-    exit()
+if(options.more_thresholds): PARAMETERS['THRESHOLDS_RANGE'] = ":(40-80]:"
 
 try:
     assert (options.fasta != None), f"{sys.argv[0]}: a FASTA file is required."
@@ -242,7 +233,7 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
 
     averaged_inferences, binary_inferences, labels, clashes = model_flow.make_inferences(
         sequences_portion, per_res_sequences_portion, test_loader, 
-        per_res_test_loader, PARAMETERS, options.thresholds_range)
+        per_res_test_loader, PARAMETERS, PARAMETERS["THRESHOLDS_RANGE"])
 
     print("%s: finished making inferences" % datetime.now(), file=sys.stderr)
             
@@ -252,10 +243,10 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
         for seq in averaged_inferences[j].keys():
             labels[j][seq].append(results.get_temperature_label(
                 averaged_inferences[j][seq], 
-                PARAMETERS["TEMPERATURE_RANGES"][options.thresholds_range], left_hand=True))
+                PARAMETERS["TEMPERATURE_RANGES"][PARAMETERS["THRESHOLDS_RANGE"]], left_hand=True))
             labels[j][seq].append(results.get_temperature_label(
                 averaged_inferences[j][seq],
-                PARAMETERS["TEMPERATURE_RANGES"][options.thresholds_range], left_hand=False))
+                PARAMETERS["TEMPERATURE_RANGES"][PARAMETERS["THRESHOLDS_RANGE"]], left_hand=False))
             clashes[j][seq].append(results.detect_clash(averaged_inferences[j][seq],
                 left_hand=True))
 
@@ -267,46 +258,46 @@ for i in range(0, len(list(sequences.keys())), options.portion_size):
         f_mean = sys.stdout
 
     if(i == 0): results.print_inferences_header(f_mean, 
-        PARAMETERS["THRESHOLDS"][options.thresholds_range], 
-        PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
+        PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]], 
+        PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
     results.print_inferences(averaged_inferences[0], binary_inferences[0],
         orig_headers, labels[0], clashes[0], 
         PARAMETERS["THERMOPHILICITY_LABELS"], f_mean, orig_seqs,
-        "mean", PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
+        "mean", PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
     # Printing per-residue inferences
     if(options.per_res_out):
         os.system(f"mkdir -p {os.path.dirname(options.per_res_out)}")
         f_per_res = open(options.per_res_out, "w") if i == 0 else open(options.per_res_out, "a")
         if(i == 0): results.print_inferences_header(f_per_res, 
-            PARAMETERS["THRESHOLDS"][options.thresholds_range], 
-            PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
+            PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]], 
+            PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
             clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"],
             f_per_res, per_res_sequences_portion, "per-res", 
-            PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
+            PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
     elif(options.per_segment_out):
         os.system(f"mkdir -p {os.path.dirname(options.per_segment_out)}")
         f_per_res = open(options.per_segment_out, "w") if i == 0 else open(options.per_segment_out, "a")
         if(i == 0): results.print_inferences_header(f_per_res, 
-            PARAMETERS["THRESHOLDS"][options.thresholds_range],
-            PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
+            PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]],
+            PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
         results.print_inferences(averaged_inferences[1], binary_inferences[1], 
             orig_headers, labels[1],
             clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"], f_per_res, 
             per_res_sequences_portion, "per-segment",
-            PARAMETERS["PRINT_THERMOPHILICITY"][options.thresholds_range])
+            PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
     # Plotting inferences
     os.system(f"mkdir -p {options.plot_dir}")
     results.plot_inferences(
         options.per_res_out, options.per_segment_out,
         averaged_inferences[1],
-        PARAMETERS["THRESHOLDS"][options.thresholds_range], options.plot_dir,
+        PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]], options.plot_dir,
         options.window_size_predictions, options.segment_size, 
         options.curve_smoothening)
 

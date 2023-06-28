@@ -152,7 +152,7 @@ def print_inferences(averaged_inferences, binary_inferences, original_headers,
                         break
             output_line += f"\t{thermophilicity}"
         
-    print(output_line, file=file_handle)
+        print(output_line, file=file_handle)
 
 def plot_per_res_inferences(averaged_inferences, thresholds, plot_dir, 
     smoothen=True, window_size=21, x_label="residue index", 
