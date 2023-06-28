@@ -95,7 +95,8 @@ def inference_epoch(model, test_loader, identifiers=[], device="cpu"):
 
     return inferences
 
-def make_inferences(sequences, per_res_sequences, mean_loader, per_res_loader, parameters): 
+def make_inferences(sequences, per_res_sequences, mean_loader, per_res_loader, 
+    parameters, thresholds_range): 
     """
     Making inferences.
    
@@ -105,6 +106,7 @@ def make_inferences(sequences, per_res_sequences, mean_loader, per_res_loader, p
     per_res_loader - DataLoader to load per-reside embeddings data
     hidden_layer_sizes - LIST with sizes (INT) of the hidden layers of classifiers
     parameters - DICT with values of keys: THRESHOLDS, SEEDS, HIDDEN_LAYER_SIZES, CLASSIFIERS_DIR, EMB_TYPE, DATASET, CLASSIFIER_TYPE
+    thresholds_range - STRING to determine, which thresholds to choose
 
     returns (DICT, DICT, DICT, DICT)
     """
@@ -113,7 +115,7 @@ def make_inferences(sequences, per_res_sequences, mean_loader, per_res_loader, p
 
     for j, loader in enumerate([mean_loader, per_res_loader]):
         if(loader is None): break
-        for threshold in parameters["THRESHOLDS"]:
+        for threshold in parameters["THRESHOLDS"][thresholds_range]:
             threshold_inferences = {}
             for seed in parameters["SEEDS"]:
                 classifier = MLP_C2H2(parameters["INPUT_SIZE"], 

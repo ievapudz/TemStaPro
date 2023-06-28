@@ -55,41 +55,47 @@ def detect_clash(predictions, left_hand=True):
             elif(j and round(float(predictions[j-1])) >=
                 round(float(predictions[j])) and j == len(predictions)-1):
                 return "-"
+            elif(len(predictions) == 1):
+                return "-"
+                
     else:
         for j, pred in enumerate(predictions[::-1]):
             if(j != len(predictions)-1 and round(float(predictions[j-1])) <
                 round(float(predictions[j]))):
-                return "yes"
+                return "*"
             elif(j != len(predictions)-1 and round(float(predictions[j-1])) >=
                 round(float(predictions[j])) and j != len(predictions)-2):
                 continue
             elif(j != len(predictions)-1 and round(float(predictions[j-1])) >=
                 round(float(predictions[j])) and j == len(predictions)-2):
-                return "no"
+                return "-"
+            elif(len(predictions) == 1):
+                return "-"
 
-def print_inferences_header(file_handle, input_fasta=False):
+def print_inferences_header(file_handle, thresholds, 
+    print_thermophilicity=False):
     """
     Print inferences table header.
 
     file_handle - FILE to which the results will be printed
-    input_fasta - BOOLEAN that determines whether the input was FASTA (True)
-        or NPZ (False)
+    thresholds - LIST of thresholds that are used
+    print_thermophilicity - BOOLEAN that determines whether to print the 
+        thermophilicity column
     """
 
-    if(input_fasta):
-        print("protein_id\tposition\tsequence\tlength\t"+\
-            "t40_binary\tt40_raw\tt45_binary\tt45_raw\tt50_binary\tt50_raw\t"+\
-            "t55_binary\tt55_raw\tt60_binary\tt60_raw\tt65_binary\tt65_raw\t"+\
-            "left_hand_label\tright_hand_label\tclash", file=file_handle)
-    else:
-        print("protein_id\tposition\t"+\
-            "t40_binary\tt40_raw\tt45_binary\tt45_raw\tt50_binary\tt50_raw\t"+\
-            "t55_binary\tt55_raw\tt60_binary\tt60_raw\tt65_binary\tt65_raw\t"+\
-            "left_hand_label\tright_hand_label\tclash", file=file_handle)
+    predictions_columns_names = ""
+    for threshold in thresholds:
+        predictions_columns_names += f"t{threshold}_binary\tt{threshold}_raw\t"
+
+    header = f"protein_id\tposition\tsequence\tlength\t{predictions_columns_names}"+\
+        f"left_hand_label\tright_hand_label\tclash"
+    if(print_thermophilicity): header += "\tthermophilicity"
+
+    print(header, file=file_handle)
 
 def print_inferences(averaged_inferences, binary_inferences, original_headers,
-    labels, clashes, file_handle, sequences=None, input_fasta=False, 
-    run_mode='mean'):
+    labels, clashes, thermophilicity_labels, file_handle, sequences=None, 
+    run_mode='mean', print_thermophilicity=False):
     """
     Print results.
 
@@ -99,12 +105,13 @@ def print_inferences(averaged_inferences, binary_inferences, original_headers,
     labels - LIST of DICT that keeps each sequence's left-hand and right-hand 
         temperature prediction labels
     clashes - LIST of DICT that keeps each sequence's clash labels
+    thermophilicity_labels - DICT with possible thermophilicity labels
     sequences - LIST of DICT that keeps sequence ids as keys and sequences as values
     file_handle - FILE to which the results will be printed
-    input_fasta - BOOLEAN that determines whether the input was FASTA (True)
-        or NPZ (False)
     run_mode - STRING that determines which run mode is executed:
         'mean', 'per-res', 'per-segment'
+    print_thermophilicity - BOOLEAN that determines to print the 
+        thermophilicity column
     """
 
     if(sequences is None): return
@@ -123,21 +130,29 @@ def print_inferences(averaged_inferences, binary_inferences, original_headers,
             out_header = original_headers["_".join(proc_header.split("_")[0:-1])]
             pos_range = proc_header.split("_")[-1].split("-")
             range_length = int(pos_range[1])-int(pos_range[0])
+            
             # Calculating the position (numerated from 1)
             position = str(int(pos_range[0])+int(range_length/2)+1)
         elif(run_mode == "per-res"):
             out_header = original_headers["_".join(proc_header.split("_")[0:-1])]
             position = str(int(proc_header.split("_")[-1])+1)
-
-        if(input_fasta):
-            print("%s\t%s\t%s\t%d\t%s\t%s\t%s" % (out_header, position, 
-                sequences[proc_header],
-                len(sequences[proc_header]), "\t".join(merged_inferences),
-                "\t".join(labels[proc_header]), clashes[proc_header][0]), file=file_handle)
-        else:
-            print("%s\t%s\t%s\t%s\t%s" % (out_header, position, "\t".join(merged_inferences),
-                "\t".join(labels[proc_header]), clashes[proc_header][0]), file=file_handle)
-
+       
+        output_line = "%s\t%s\t%s\t%d\t%s\t%s\t%s" % (out_header, position, 
+            sequences[proc_header],
+            len(sequences[proc_header]), "\t".join(merged_inferences),
+            "\t".join(labels[proc_header]), clashes[proc_header][0])
+        
+        # Choosing the thermophilicity label
+        if(print_thermophilicity):
+            thermophilicity = "undetermined"
+            if(labels[proc_header][0] == labels[proc_header][1]):
+                for t in list(thermophilicity_labels.keys()):
+                    if(labels[proc_header][0] in thermophilicity_labels[t]):
+                        thermophilicity = t
+                        break
+            output_line += f"\t{thermophilicity}"
+        
+        print(output_line, file=file_handle)
 
 def plot_per_res_inferences(averaged_inferences, thresholds, plot_dir, 
     smoothen=True, window_size=21, x_label="residue index", 
