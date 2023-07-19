@@ -173,7 +173,7 @@ classifiers' predictions or not ('-').
 
 If plotting option is chosen, five plots (for each classifiers' predictions) 
 will be created. The naming convention is 
-'[FASTA header of protein]\_per\_residue\_plot\_t[40|45|50|55|60|65].svg'
+'[FASTA header of protein]\_per\_residue\_plot\_t[40|45|50|55|60|65|70|75|80].svg'
 
 ## Dataset availability
 
