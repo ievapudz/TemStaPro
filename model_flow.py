@@ -144,7 +144,7 @@ def make_inferences(sequences, per_res_sequences, mean_loader, per_res_loader,
 					loader,
 					identifiers=list(averaged_inferences[j].keys()), device=parameters["DEVICE"])
 			# Taking average of the predictions 
-			for seq in threshold_inferences["41"].keys():
+			for seq in threshold_inferences["1"].keys():
 				mean_prediction = 0
 				for seed in parameters["SEEDS"]:
 					 mean_prediction += threshold_inferences[seed][seq]

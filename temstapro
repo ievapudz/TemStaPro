@@ -20,7 +20,7 @@ PARAMETERS = {
         ":(40-65]:": ["40", "45", "50", "55", "60", "65"],
         ":(40-80]:": ["40", "45", "50", "55", "60", "65", "70", "75", "80"],
     },
-    "SEEDS": ["41", "42", "43", "44", "45"],
+    "SEEDS": ["1", "2", "3", "4", "5"],
     "INPUT_SIZE": 1024,
     "HIDDEN_LAYER_SIZES": [256, 128],
     "DEVICE": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
