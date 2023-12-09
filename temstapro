@@ -22,7 +22,7 @@ PARAMETERS = {
     },
     "SEEDS": ["41", "42", "43", "44", "45"],
     "INPUT_SIZE": 1024,
-    "HIDDEN_LAYER_SIZES": [512, 256],
+    "HIDDEN_LAYER_SIZES": [256, 128],
     "DEVICE": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
     "THRESHOLDS_RANGE": ":(40-65]:",
     "TEMPERATURE_RANGES": {
