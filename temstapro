@@ -12,124 +12,125 @@ from torch.utils.data import TensorDataset
 import torch
 
 PARAMETERS = {
-    "PT_MODEL_PATH": "Rostlab/prot_t5_xl_half_uniref50-enc",
-    "DATASET": "major",
-    "EMB_TYPE": "mean",
-    "CLASSIFIER_TYPE": "imbal",
-    "THRESHOLDS": {
-        ":(40-65]:": ["40", "45", "50", "55", "60", "65"],
-        ":(40-80]:": ["40", "45", "50", "55", "60", "65", "70", "75", "80"],
-    },
-    "SEEDS": ["41", "42", "43", "44", "45"],
-    "INPUT_SIZE": 1024,
-    "HIDDEN_LAYER_SIZES": [512, 256],
-    "DEVICE": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
-    "THRESHOLDS_RANGE": ":(40-65]:",
-    "TEMPERATURE_RANGES": {
-        ":(40-65]:": ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", 
-            "[60-65)", "65<="],
-        ":(40-80]:": ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", 
-            "[60-65)", "[65-70)", "[70-75)", "[75-80)", "80<="],
-    },
-    "THERMOPHILICITY_LABELS": {
-        "mesophilic": ["<40", "[40-45)", "<45"],
-        "thermophilic": ["[45-50)", "[50-55)", "[55-60)", "[60-65)", 
-            "65<=", "[65-70)", "[70-75)", "<75"],
-        "hyperthermophilic": ["[75-80)", "80<="]
-    },
-    "PRINT_THERMOPHILICITY": {
-        ":(40-65]:": False,
-        ":(40-80]:": True
-    }
+	"PT_MODEL_PATH": "Rostlab/prot_t5_xl_half_uniref50-enc",
+	"DATASET": "major",
+	"EMB_TYPE": "mean",
+	"CLASSIFIER_TYPE": "imbal",
+	"THRESHOLDS": {
+		":(40-65]:": ["40", "45", "50", "55", "60", "65"],
+		":(40-80]:": ["40", "45", "50", "55", "60", "65", "70", "75", "80"],
+	},
+	"SEEDS": ["41", "42", "43", "44", "45"],
+	"INPUT_SIZE": 1024,
+	"HIDDEN_LAYER_SIZES": [512, 256],
+	"DEVICE": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
+	"THRESHOLDS_RANGE": ":(40-65]:",
+	"TEMPERATURE_RANGES": {
+		":(40-65]:": ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", 
+			"[60-65)", "65<="],
+		":(40-80]:": ["<40", "[40-45)", "[45-50)", "[50-55)", "[55-60)", 
+			"[60-65)", "[65-70)", "[70-75)", "[75-80)", "80<="],
+	},
+	"THERMOPHILICITY_LABELS": {
+		"mesophilic": ["<40", "[40-45)", "<45"],
+		"thermophilic": ["[45-50)", "[50-55)", "[55-60)", "[60-65)", 
+			"65<=", "[65-70)", "[70-75)", "<75"],
+		"hyperthermophilic": ["[75-80)", "80<="]
+	},
+	"PRINT_THERMOPHILICITY": {
+		":(40-65]:": False,
+		":(40-80]:": True
+	}
 }
 
 parser = OptionParser()
 
 parser.add_option("--input-fasta", "-f", dest="fasta",
-    default=None, help="path to the input FASTA file.")
+	default=None, help="path to the input FASTA file.")
 
 parser.add_option("--embeddings-dir", "-e", dest="emb_dir",
-    default=None, help="path to the directory to which embeddings "+\
-    "files will be saved (cache).")
+	default=None, help="path to the directory to which embeddings "+\
+	"files will be saved (cache).")
 
 parser.add_option("--PT-directory", "-d", dest="pt_dir",
-    default=None, help="path to the directory of ProtTrans model.")
+	default=None, help="path to the directory of ProtTrans model.")
 
 parser.add_option("--temstapro-directory", "-t", dest="tsp_dir",
-    default='./', help="path to the directory of TemStaPro program "+\
-    "with its dependencies.")
+	default='./', help="path to the directory of TemStaPro program "+\
+	"with its dependencies.")
 
 parser.add_option("--more-thresholds", dest="more_thresholds",
-    action="store_true", help="option for the mode that outputs "+\
-    "additional predictions for upper temperature thresholds and the "+\
-    "thremophilicity label")
+	action="store_true", help="option for the mode that outputs "+\
+	"additional predictions for upper temperature thresholds and the "+\
+	"thremophilicity label")
 
 parser.add_option("--mean-output", dest="mean_out",
-    default=None, help="path to the output TSV file with mean predictions. "+\
-    "Predictions made from the mean embeddings are always printed to STDOUT."+\
-    " If this option is given, the output is directed to the given file")
+	default=None, help="path to the output TSV file with mean predictions. "+\
+	"Predictions made from the mean embeddings are always printed to STDOUT."+\
+	" If this option is given, the output is directed to the given file")
 
 parser.add_option("--per-res-output", dest="per_res_out",
-    default=None, help="path to the output TSV file with per-residue "+\
-    "predictions.")
+	default=None, help="path to the output TSV file with per-residue "+\
+	"predictions.")
 
 parser.add_option("--per-segment-output", dest="per_segment_out",
-    default=None, help="path to the output TSV file with per-residue "+\
-    "predictions made for each segment of the sequence.")
+	default=None, help="path to the output TSV file with per-residue "+\
+	"predictions made for each segment of the sequence.")
 
 parser.add_option("--segment-size", dest="segment_size",
-    default=41, help="option to set the window size for average smoothening "+\
-    "of per residue embeddings ('per-segment-output' option). Default: 41.")
+	default=41, help="option to set the window size for average smoothening "+\
+	"of per residue embeddings ('per-segment-output' option). Default: 41.")
 
 parser.add_option("--window-size-predictions", "-w", 
-    dest="window_size_predictions",
-    default=81, help="option to set the window size for average smoothening "+\
-    "of per residue predictions for plotting (option for 'per-res-output' "+\
-    "and 'per-segment-output'). Default: 81.")
+	dest="window_size_predictions",
+	default=81, help="option to set the window size for average smoothening "+\
+	"of per residue predictions for plotting (option for 'per-res-output' "+\
+	"and 'per-segment-output'). Default: 81.")
 
 parser.add_option("--per-residue-plot-dir", "-p", dest="plot_dir",
-    default=None, help="path to the directory to which inferences "+\
-    "plots will be saved (option for 'per-res-output' and "+\
-    "'per-res-segment-output' modes. Default: './'.")
+	default=None, help="path to the directory to which inferences "+\
+	"plots will be saved (option for 'per-res-output' and "+\
+	"'per-res-segment-output' modes. Default: './'.")
 
 parser.add_option("--curve-smoothening", "-c", dest="curve_smoothening",
-    default=False, action="store_true", 
-    help="option for 'per-segment-output' run mode, which adjusts the "+\
-    "plot by making an additional smoothening of the curve.")
+	default=False, action="store_true", 
+	help="option for 'per-segment-output' run mode, which adjusts the "+\
+	"plot by making an additional smoothening of the curve.")
 
 parser.add_option("--portion-size", dest="portion_size",
-    default=1000, 
-    help="option to set the portions', into which to divide the input "+\
-    "of sequences, maximum size. If no division is needed, set the "+\
-    "option to 0. Default: 1000.")
+	default=1000, 
+	help="option to set the portions', into which to divide the input "+\
+	"of sequences, maximum size. If no division is needed, set the "+\
+	"option to 0. Default: 1000.")
 
 parser.add_option("--version", "-v", dest="version",
-    default=False, action="store_true",
-    help="print version of the program and exit.")
+	default=False, action="store_true",
+	help="print version of the program and exit.")
 
 (options, args) = parser.parse_args()
 
 if(options.version):
-    print(f"TemStaPro 0.1.{os.popen('git rev-list --all --count').read().strip()}")
-    exit()
+	print(f"TemStaPro 0.1.{os.popen('git rev-list --count HEAD').read().strip()}")
+	print(PARAMETERS['DEVICE'])
+	exit()
 
 options.window_size_predictions = int(options.window_size_predictions)
 options.segment_size = int(options.segment_size)
 if(options.more_thresholds): PARAMETERS['THRESHOLDS_RANGE'] = ":(40-80]:"
 
 try:
-    assert (options.fasta != None), f"{sys.argv[0]}: a FASTA file is required."
+	assert (options.fasta != None), f"{sys.argv[0]}: a FASTA file is required."
 except AssertionError as message:
-    print(message, file=sys.stderr)
-    exit()
+	print(message, file=sys.stderr)
+	exit()
 
 try:
-    assert (options.pt_dir != None), (
-        f"{sys.argv[0]}: a path to the ProtTrans model location is required."
-    )
+	assert (options.pt_dir != None), (
+		f"{sys.argv[0]}: a path to the ProtTrans model location is required."
+	)
 except AssertionError as message:
-    print(message, file=sys.stderr)
-    exit()
+	print(message, file=sys.stderr)
+	exit()
 
 PARAMETERS["CLASSIFIERS_DIR"] = f"{options.tsp_dir}/models"
 
@@ -149,7 +150,7 @@ import results
 print("%s: beginning to load the model " % datetime.now(), file=sys.stderr)
 
 pt_model, tokenizer = prottrans_models.load_model_and_tokenizer(options.pt_dir, 
-    PARAMETERS["PT_MODEL_PATH"])
+	PARAMETERS["PT_MODEL_PATH"])
 
 print("%s: finished loading the model" % datetime.now(), file=sys.stderr)
 
@@ -160,144 +161,144 @@ if(options.portion_size == 0): options.portion_size = len(sequences)
 per_res_mode = (options.per_res_out or options.per_segment_out)
 
 for i in range(0, len(list(sequences.keys())), options.portion_size):
-    portion_keys = list(sequences.keys())[i:i+options.portion_size]
-    
-    sequences_portion = {}
-    for key in portion_keys:
-        sequences_portion[key] = sequences[key]
+	portion_keys = list(sequences.keys())[i:i+options.portion_size]
+	
+	sequences_portion = {}
+	for key in portion_keys:
+		sequences_portion[key] = sequences[key]
 
-    # Check which sequences do not have embeddings generated
-    if(options.emb_dir and os.path.exists(options.emb_dir)):
-        seqs_wo_emb_portion = data_process.get_sequences_without_embeddings(
-            sequences_portion, options.emb_dir, per_res=per_res_mode)
-    else:
-        seqs_wo_emb_portion = sequences_portion
+	# Check which sequences do not have embeddings generated
+	if(options.emb_dir and os.path.exists(options.emb_dir)):
+		seqs_wo_emb_portion = data_process.get_sequences_without_embeddings(
+			sequences_portion, options.emb_dir, per_res=per_res_mode)
+	else:
+		seqs_wo_emb_portion = sequences_portion
 
-    embeddings = {}
-    per_res_dataset = {}
-    per_res_sequences_portion = {}
+	embeddings = {}
+	per_res_dataset = {}
+	per_res_sequences_portion = {}
  
-    if(len(seqs_wo_emb_portion)):
-        gen_emb_start = datetime.now()
-        print(f"{datetime.now()}: beginning to generate embeddings", file=sys.stderr)
+	if(len(seqs_wo_emb_portion)):
+		gen_emb_start = datetime.now()
+		print(f"{datetime.now()}: beginning to generate embeddings", file=sys.stderr)
 
-        # Generating embeddings
-        embeddings = prottrans_models.get_embeddings(pt_model, tokenizer, 
-            seqs_wo_emb_portion, 
-            per_residue=per_res_mode, 
-            per_protein=True)
+		# Generating embeddings
+		embeddings = prottrans_models.get_embeddings(pt_model, tokenizer, 
+			seqs_wo_emb_portion, 
+			per_residue=per_res_mode, 
+			per_protein=True)
 
-        gen_emb_end = datetime.now()
-        
-        # If cache given, save embeddings
-        if(options.emb_dir and os.path.exists(options.emb_dir)):
-            if(per_res_mode):
-                prottrans_models.save_embeddings(seqs_wo_emb_portion, embeddings,
-                    options.emb_dir, "per_res")
-            prottrans_models.save_embeddings(seqs_wo_emb_portion, embeddings, 
-                options.emb_dir, "mean")
-        elif(options.emb_dir and not os.path.exists(options.emb_dir)):
-            print("The given directory (option -e) does not exist, "+\
-                "embeddings' PT files will not be saved.", file=sys.stderr)
+		gen_emb_end = datetime.now()
+		
+		# If cache given, save embeddings
+		if(options.emb_dir and os.path.exists(options.emb_dir)):
+			if(per_res_mode):
+				prottrans_models.save_embeddings(seqs_wo_emb_portion, embeddings,
+					options.emb_dir, "per_res")
+			prottrans_models.save_embeddings(seqs_wo_emb_portion, embeddings, 
+				options.emb_dir, "mean")
+		elif(options.emb_dir and not os.path.exists(options.emb_dir)):
+			print("The given directory (option -e) does not exist, "+\
+				"embeddings' PT files will not be saved.", file=sys.stderr)
 
-        try:
-            prottrans_models.print_embeddings_generation_stats(i, 
-                options.portion_size, embeddings, seqs_wo_emb_portion, 
-                gen_emb_start, gen_emb_end)
-        except ZeroDivisionError:
-            print(f"{sys.argv[0]}: no embeddings were generated.", file=sys.stderr)
-            sys.exit(1)
+		try:
+			prottrans_models.print_embeddings_generation_stats(i, 
+				options.portion_size, embeddings, seqs_wo_emb_portion, 
+				gen_emb_start, gen_emb_end)
+		except ZeroDivisionError:
+			print(f"{sys.argv[0]}: no embeddings were generated.", file=sys.stderr)
+			sys.exit(1)
 
-    # Collecting the required type of embeddings
-    dataset = data_process.collect_mean_embeddings(sequences_portion, 
-        embeddings=embeddings, emb_dir=options.emb_dir, 
-        input_size=PARAMETERS["INPUT_SIZE"])
+	# Collecting the required type of embeddings
+	dataset = data_process.collect_mean_embeddings(sequences_portion, 
+		embeddings=embeddings, emb_dir=options.emb_dir, 
+		input_size=PARAMETERS["INPUT_SIZE"])
 
-    if(options.per_res_out):
-        per_res_dataset = data_process.collect_per_res_embeddings(sequences_portion, 
-            orig_seqs, embeddings=embeddings, emb_dir=options.emb_dir, 
-            input_size=PARAMETERS["INPUT_SIZE"])
-        per_res_sequences_portion = per_res_dataset["z_test"]
-    elif(options.per_segment_out):
-        per_res_dataset = data_process.collect_per_res_embeddings(sequences_portion, 
-            orig_seqs, embeddings=embeddings,
-            emb_dir=options.emb_dir, input_size=PARAMETERS["INPUT_SIZE"], smoothen=True, 
-            window_size=options.segment_size)
-        per_res_sequences_portion = per_res_dataset["z_test"]
+	if(options.per_res_out):
+		per_res_dataset = data_process.collect_per_res_embeddings(sequences_portion, 
+			orig_seqs, embeddings=embeddings, emb_dir=options.emb_dir, 
+			input_size=PARAMETERS["INPUT_SIZE"])
+		per_res_sequences_portion = per_res_dataset["z_test"]
+	elif(options.per_segment_out):
+		per_res_dataset = data_process.collect_per_res_embeddings(sequences_portion, 
+			orig_seqs, embeddings=embeddings,
+			emb_dir=options.emb_dir, input_size=PARAMETERS["INPUT_SIZE"], smoothen=True, 
+			window_size=options.segment_size)
+		per_res_sequences_portion = per_res_dataset["z_test"]
 
-    test_loader, per_res_test_loader = model_flow.prepare_data_loaders([
-        dataset, per_res_dataset], 'test')
+	test_loader, per_res_test_loader = model_flow.prepare_data_loaders([
+		dataset, per_res_dataset], 'test')
 
-    print("%s: beginning to make inferences" % datetime.now(), 
-        file=sys.stderr)
+	print("%s: beginning to make inferences" % datetime.now(), 
+		file=sys.stderr)
 
-    averaged_inferences, binary_inferences, labels, clashes = model_flow.make_inferences(
-        sequences_portion, per_res_sequences_portion, test_loader, 
-        per_res_test_loader, PARAMETERS, PARAMETERS["THRESHOLDS_RANGE"])
+	averaged_inferences, binary_inferences, labels, clashes = model_flow.make_inferences(
+		sequences_portion, per_res_sequences_portion, test_loader, 
+		per_res_test_loader, PARAMETERS, PARAMETERS["THRESHOLDS_RANGE"])
 
-    print("%s: finished making inferences" % datetime.now(), file=sys.stderr)
-            
-    # Processing results
-    for j, loader in enumerate([test_loader, per_res_test_loader]):
-        if(loader is None): break
-        for seq in averaged_inferences[j].keys():
-            labels[j][seq].append(results.get_temperature_label(
-                averaged_inferences[j][seq], 
-                PARAMETERS["TEMPERATURE_RANGES"][PARAMETERS["THRESHOLDS_RANGE"]], left_hand=True))
-            labels[j][seq].append(results.get_temperature_label(
-                averaged_inferences[j][seq],
-                PARAMETERS["TEMPERATURE_RANGES"][PARAMETERS["THRESHOLDS_RANGE"]], left_hand=False))
-            clashes[j][seq].append(results.detect_clash(averaged_inferences[j][seq],
-                left_hand=True))
+	print("%s: finished making inferences" % datetime.now(), file=sys.stderr)
+			
+	# Processing results
+	for j, loader in enumerate([test_loader, per_res_test_loader]):
+		if(loader is None): break
+		for seq in averaged_inferences[j].keys():
+			labels[j][seq].append(results.get_temperature_label(
+				averaged_inferences[j][seq], 
+				PARAMETERS["TEMPERATURE_RANGES"][PARAMETERS["THRESHOLDS_RANGE"]], left_hand=True))
+			labels[j][seq].append(results.get_temperature_label(
+				averaged_inferences[j][seq],
+				PARAMETERS["TEMPERATURE_RANGES"][PARAMETERS["THRESHOLDS_RANGE"]], left_hand=False))
+			clashes[j][seq].append(results.detect_clash(averaged_inferences[j][seq],
+				left_hand=True))
 
-    # Processing printing of mean predictions
-    if(options.mean_out):
-        os.system(f"mkdir -p {os.path.dirname(options.mean_out)}")
-        f_mean = open(options.mean_out, "w") if i == 0 else open(options.mean_out, "a")
-    else:
-        f_mean = sys.stdout
+	# Processing printing of mean predictions
+	if(options.mean_out):
+		os.system(f"mkdir -p {os.path.dirname(options.mean_out)}")
+		f_mean = open(options.mean_out, "w") if i == 0 else open(options.mean_out, "a")
+	else:
+		f_mean = sys.stdout
 
-    if(i == 0): results.print_inferences_header(f_mean, 
-        PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]], 
-        PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
+	if(i == 0): results.print_inferences_header(f_mean, 
+		PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]], 
+		PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
-    results.print_inferences(averaged_inferences[0], binary_inferences[0],
-        orig_headers, labels[0], clashes[0], 
-        PARAMETERS["THERMOPHILICITY_LABELS"], f_mean, orig_seqs,
-        "mean", PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
+	results.print_inferences(averaged_inferences[0], binary_inferences[0],
+		orig_headers, labels[0], clashes[0], 
+		PARAMETERS["THERMOPHILICITY_LABELS"], f_mean, orig_seqs,
+		"mean", PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
-    # Printing per-residue inferences
-    if(options.per_res_out):
-        os.system(f"mkdir -p {os.path.dirname(options.per_res_out)}")
-        f_per_res = open(options.per_res_out, "w") if i == 0 else open(options.per_res_out, "a")
-        if(i == 0): results.print_inferences_header(f_per_res, 
-            PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]], 
-            PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
+	# Printing per-residue inferences
+	if(options.per_res_out):
+		os.system(f"mkdir -p {os.path.dirname(options.per_res_out)}")
+		f_per_res = open(options.per_res_out, "w") if i == 0 else open(options.per_res_out, "a")
+		if(i == 0): results.print_inferences_header(f_per_res, 
+			PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]], 
+			PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
-        results.print_inferences(averaged_inferences[1], binary_inferences[1], 
-            orig_headers, labels[1],
-            clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"],
-            f_per_res, per_res_sequences_portion, "per-res", 
-            PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
-    elif(options.per_segment_out):
-        os.system(f"mkdir -p {os.path.dirname(options.per_segment_out)}")
-        f_per_res = open(options.per_segment_out, "w") if i == 0 else open(options.per_segment_out, "a")
-        if(i == 0): results.print_inferences_header(f_per_res, 
-            PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]],
-            PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
+		results.print_inferences(averaged_inferences[1], binary_inferences[1], 
+			orig_headers, labels[1],
+			clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"],
+			f_per_res, per_res_sequences_portion, "per-res", 
+			PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
+	elif(options.per_segment_out):
+		os.system(f"mkdir -p {os.path.dirname(options.per_segment_out)}")
+		f_per_res = open(options.per_segment_out, "w") if i == 0 else open(options.per_segment_out, "a")
+		if(i == 0): results.print_inferences_header(f_per_res, 
+			PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]],
+			PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
-        results.print_inferences(averaged_inferences[1], binary_inferences[1], 
-            orig_headers, labels[1],
-            clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"], f_per_res, 
-            per_res_sequences_portion, "per-segment",
-            PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
+		results.print_inferences(averaged_inferences[1], binary_inferences[1], 
+			orig_headers, labels[1],
+			clashes[1], PARAMETERS["THERMOPHILICITY_LABELS"], f_per_res, 
+			per_res_sequences_portion, "per-segment",
+			PARAMETERS["PRINT_THERMOPHILICITY"][PARAMETERS["THRESHOLDS_RANGE"]])
 
-    # Plotting inferences
-    os.system(f"mkdir -p {options.plot_dir}")
-    results.plot_inferences(
-        options.per_res_out, options.per_segment_out,
-        averaged_inferences[1],
-        PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]], options.plot_dir,
-        options.window_size_predictions, options.segment_size, 
-        options.curve_smoothening)
+	# Plotting inferences
+	os.system(f"mkdir -p {options.plot_dir}")
+	results.plot_inferences(
+		options.per_res_out, options.per_segment_out,
+		averaged_inferences[1],
+		PARAMETERS["THRESHOLDS"][PARAMETERS["THRESHOLDS_RANGE"]], options.plot_dir,
+		options.window_size_predictions, options.segment_size, 
+		options.curve_smoothening)
 
