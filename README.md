@@ -177,12 +177,16 @@ will be created. The naming convention is
 
 ## Dataset availability
 
-Datasets that were used to train, validate, and test TemStaPro are available in 
+Datasets that were used to train, validate, and test TemStaPro (v0.1) are available in 
 [Zenodo.](https://doi.org/10.5281/zenodo.7743638)
+
+Zenodo record will be updated with datasets for v0.2 soon.
 
 ## Citing
 
 If you use TemStaPro in your publication, please cite the [work.](https://doi.org/10.1101/2023.03.27.534365)
+
+The work regarding v0.2 will be updated soon.
 
 ```
 @article {2023.03.27.534365,
