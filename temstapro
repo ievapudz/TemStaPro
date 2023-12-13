@@ -110,7 +110,7 @@ parser.add_option("--version", "-v", dest="version",
 (options, args) = parser.parse_args()
 
 if(options.version):
-	print(f"TemStaPro 0.1.{os.popen('git rev-list --all --count').read().strip()}")
+	print(f"TemStaPro 0.1.{os.popen('git rev-list --count HEAD').read().strip()}")
 	exit()
 
 options.window_size_predictions = int(options.window_size_predictions)
