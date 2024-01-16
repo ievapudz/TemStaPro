@@ -184,8 +184,6 @@ Datasets that were used to train, validate, and test TemStaPro are available in
 
 If you use TemStaPro in your publication, please cite the [work.](https://doi.org/10.1101/2023.03.27.534365)
 
-The work regarding v0.2 will be updated soon.
-
 ```
 @article {2023.03.27.534365,
 	author = {Pud{\v z}iuvelyte, Ieva and Olechnovi{\v c}, Kliment and Godliauskaite, Egle and Sermokas, Kristupas and Urbaitis, Tomas and Gasiunas, Giedrius and Kazlauskas, Darius},
