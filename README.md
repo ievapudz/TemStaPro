@@ -201,7 +201,6 @@ If you use TemStaPro in your publication, please cite the [work.](https://doi.or
 	month = apr,
 	year = {2024},
 	pages = {btae157},
-	file = {Full Text PDF:/Users/ievapudz/Zotero/storage/8SBYAFBZ/Pud{\v z}iuvelyt{\. e} et al. - 2024 - TemStaPro protein thermostability prediction usin.pdf:application/pdf;Snapshot:/Users/ievapudz/Zotero/storage/WK73JHM7/7632735.html:text/html},
 }
 
 ```
