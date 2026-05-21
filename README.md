@@ -18,69 +18,35 @@ Other hardware systems, which were used to successfully run the program:
 
 ## Environment requirements
 
-Before starting up Anaconda or Miniconda should be installed
-in the system. Follow instructions given in 
-[Conda's documentation.](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
+TemStaPro now ships with a `pyproject.toml` and supports modern Python
+versions. Python 3.12 is the recommended version for new environments.
+Any supported version matching the package metadata (`>=3.9`) should work.
 
-Setting up the environment can be done in one of the following ways.
+Create a Python environment first, then install TemStaPro from the local
+checkout with `pip`.
 
-### From YML file
-
-In this repository two YML files can be found: one YML file
-has the prerequisites for the environment that exploits only 
-CPU ([`environment_CPU.yml`](./environment_CPU.yml)), another one to exploit both CPU 
-GPU ([`environment_GPU.yml`](./environment_GPU.yml)).
-
-This approach was tested with Conda 4.10.3 and 4.12.0 versions.
-
-Run the following command to create the environment from a 
-YML file:
+For a GPU-enabled environment:
 ```
-conda env create -f environment_CPU.yml
+python3.12 -m venv temstapro_env
+source temstapro_env/bin/activate
+python -m pip install --upgrade pip
+pip install "torch==2.6.0"
+pip install .
 ```
 
-Activate the environment:
+For a CPU-only environment, install the CPU build of PyTorch first and then
+install TemStaPro:
 ```
-conda activate temstapro_env_CPU
-```
-
-### From scratch
-
-To set up the environment to exploit GPU for the program, run the following commands:
-```
-conda create -n temstapro_env python=3.7
-conda activate temstapro_env
-conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
-conda install -c conda-forge transformers
-conda install -c conda-forge sentencepiece
-conda install -c conda-forge matplotlib
+python3.12 -m venv temstapro_env
+source temstapro_env/bin/activate
+python -m pip install --upgrade pip
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install .
 ```
 
-To test if PyTorch package is installed to exploit CUDA,
-call `python3` command interpreter and run the 
-following lines:
+To verify that PyTorch can see CUDA when expected:
 ```
-import torch
-torch.cuda.is_available()
-```
-
-If the output is 'True', then the installing procedure was successful,
-otherwise try to set the path to the installed packages:
-```
-export PATH=/usr/local/cuda-11.7/bin${PATH:+:${PATH}}
-export LD_LIBRARY_PATH=/usr/local/cuda-11.7/lib64\${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-```
-
-If CUDA for PyTorch is still not available, check out the [forum.](https://github.com/pytorch/pytorch/issues/30664)
-
-For the systems without GPU, run the following commands:
-```
-conda create -n temstapro_env python=3.7
-conda activate temstapro_env
-conda install -c conda-forge transformers
-conda install pytorch -c pytorch
-conda install -c conda-forge sentencepiece
-conda install -c conda-forge matplotlib
+python -c "import torch; print(torch.cuda.is_available())"
 ```
 
 ## Downloading the program
@@ -89,7 +55,8 @@ To download the program, go to the directory of your choice in your system.
 If you have `git` installed, run the following command:
 
 ```
-git clone https://github.com/ievapudz/TemStaPro.git
+git clone https://github.com/NeurosnapInc/TemStaPro.git
+cd TemStaPro
 ```
 
 If there is no `git` in your system, press on the (green) button 'Code'
@@ -102,17 +69,17 @@ your choice.
 Test if the environment was installed and the program was downloaded 
 successfully:
 ```
-make all
+pip install -e ".[test]"
+pytest -q
 ```
 
-It might be that the tests will not pass on the first
-try because of "Downloading" messages. If this is 
-the case, clean the output files
-and run the tests again using commands:
+The CLI golden tests may download ProtTrans assets on first use. If that
+causes a mismatch in expected output, rerun the tests after the initial
+download completes.
 
+To run a single CLI golden test case:
 ```
-make clean
-make all
+pytest -q tests/test_cli.py -k 004
 ```
 
 ## Usage
@@ -121,6 +88,13 @@ To get a list of all possible options run:
 ```
 ./temstapro --help
 ```
+
+ProtTrans weights are downloaded on demand into `./ProtTrans/` the first time
+they are needed.
+
+If you prefer not to run TemStaPro locally, Neurosnap provides a hosted
+webserver for running TemStaPro interactively and in bulk:
+https://neurosnap.ai/service/TemStaPro%20Protein%20Thermostability%20Prediction
 
 The main workflow of the program is to take FASTA files of protein
 sequences and provide predictions for them from mean ProtTrans embeddings. 

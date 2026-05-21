@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "temstapro"
+version = "0.1.0"
+description = "Protein thermostability prediction with ProtTrans embeddings."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "matplotlib",
+  "numpy",
+  "protobuf",
+  "sentencepiece",
+  "torch",
+  "transformers",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+]
+
+[tool.setuptools]
+py-modules = [
+  "MLP",
+  "data_process",
+  "model_flow",
+  "prottrans_models",
+  "results",
+]
+script-files = [
+  "temstapro",
+]
