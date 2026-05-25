@@ -8,6 +8,10 @@ import torch
 import os
 import sys
 from hashlib import sha256
+from transformers import logging as hf_logging
+
+hf_logging.set_verbosity_error()
+hf_logging.disable_progress_bar()
 
 def get_pretrained_model(model_path):
     """
@@ -133,7 +137,7 @@ def get_embeddings(model, tokenizer, seqs, per_residue, per_protein,
             pdb_ids, seqs, seq_lens = zip(*batch)
             batch = list()
 
-            token_encoding = tokenizer.batch_encode_plus(seqs, 
+            token_encoding = tokenizer(seqs,
                 add_special_tokens=True, padding='longest')
             input_ids = torch.tensor(token_encoding['input_ids']).to(device)
             attention_mask = torch.tensor(
