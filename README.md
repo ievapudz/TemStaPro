@@ -97,6 +97,18 @@ and then 'Download ZIP'. The ZIP archyve containing the program's code will be
 shortly downloaded. Next step is to decompress the archyve in the directory of 
 your choice.
 
+## Downloading the pLM weights
+
+Prior to running computations on the compute nodes that do not have access to
+the Internet, one should first run the dowload-only mode to retrieve the weights
+of ProtT5-XL (ProtTrans) to the local directory (default: `./ProtTrans/`):
+
+```
+./temstapro -d ProtTrans/ --download-only
+```
+
+This command has to be run only once.
+
 ## Testing the set-up
 
 Test if the environment was installed and the program was downloaded 

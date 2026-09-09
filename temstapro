@@ -103,6 +103,12 @@ parser.add_option("--portion-size", dest="portion_size",
 	"of sequences, maximum size. If no division is needed, set the "+\
 	"option to 0. Default: 1000.")
 
+parser.add_option("--download-only", dest="download_only",
+	default=False, action="store_true",
+	help="download the ProtTrans model and tokenizer into the directory "+\
+	"given by '-d' and exit. Run this once on a machine with internet "+\
+	"access before running the program on offline compute nodes.")
+
 parser.add_option("--version", "-v", dest="version",
 	default=False, action="store_true",
 	help="print version of the program and exit.")
@@ -117,11 +123,12 @@ options.window_size_predictions = int(options.window_size_predictions)
 options.segment_size = int(options.segment_size)
 if(options.more_thresholds): PARAMETERS['THRESHOLDS_RANGE'] = ":(40-80]:"
 
-try:
-	assert (options.fasta != None), f"{sys.argv[0]}: a FASTA file is required."
-except AssertionError as message:
-	print(message, file=sys.stderr)
-	exit()
+if(not options.download_only):
+	try:
+		assert (options.fasta != None), f"{sys.argv[0]}: a FASTA file is required."
+	except AssertionError as message:
+		print(message, file=sys.stderr)
+		exit()
 
 try:
 	assert (options.pt_dir != None), (
@@ -141,6 +148,14 @@ import prottrans_models
 import data_process
 import model_flow
 import results
+
+if(options.download_only):
+	print("%s: downloading ProtTrans model and tokenizer into %s" % (
+		datetime.now(), options.pt_dir), file=sys.stderr)
+	prottrans_models.load_model_and_tokenizer(options.pt_dir,
+		PARAMETERS["PT_MODEL_PATH"])
+	print("%s: download finished" % datetime.now(), file=sys.stderr)
+	sys.exit(0)
 
 # Standardization of the FASTA file
 (sequences, orig_headers, orig_seqs) = prottrans_models.process_FASTA(options.fasta)
